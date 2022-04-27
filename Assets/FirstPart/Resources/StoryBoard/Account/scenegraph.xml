@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<ArrayOfLessons xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Lessons>
+    <Lesson_Name>StartingLesson</Lesson_Name>
+    <Tag>Normal</Tag>
+    <Stages>
+      <Stage_Name>StartingStage</Stage_Name>
+      <Actions>
+        <Action>OperationStart</Action>
+        <ActionClassName>OperationStart</ActionClassName>
+        <optionalActions />
+        <destroyOnPerform />
+      </Actions>
+    </Stages>
+  </Lessons>
+</ArrayOfLessons>

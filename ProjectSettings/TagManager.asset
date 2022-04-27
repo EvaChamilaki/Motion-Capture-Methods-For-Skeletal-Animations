@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - RightPalm
+  - LeftPalm
+  - Drill
+  - OK_Button
+  - Querie_Button
+  - UIAlwaysOnTop
+  - Scalpel
+  - AnnotationMarker
+  - Bonesaw
+  - Pliers
+  - Mallet
+  - Retractor
+  - RightHand
+  - LeftHand
+  - FemoralMeasureTool
+  - CementGun
+  - RightHandIndex
+  - LeftHandIndex
+  - DrillTower
+  - CementSpatula
+  - Scissors
+  - ToolAttachR
+  - ToolAttachL
+  - Luer
+  - SewingScissors
+  - Cauterizer
+  - ActionTriggerCollider
+  - Cautery
+  - Material_Cloth
+  - Material_Metal
+  - SurgeryRoom
+  - Material_Body_or_Plastic
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - 
+  - 
+  - UserHands
+  - 
+  - CameraRig
+  - ModelSkin
+  - ignore All
+  - Tools
+  - 
+  - Lights
+  - Mirror
+  - SurgeryRoom
+  - InternalOrgans
+  - ToolsOFF
+  - 
+  - NoTriggerColliderLesson
+  - Reflection1
+  - TriggerColliderLesson
+  - GrabbablePrefabs
+  - AvatarLayer
+  - Areas
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
