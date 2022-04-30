@@ -10,7 +10,9 @@ public class RandomIdleAnim : MonoBehaviour
     {
         anim = GetComponent<Animator>();
 
-        while(true)
+        
+
+        while (true)
         {
             yield return new WaitForSeconds(10.0f);
 
