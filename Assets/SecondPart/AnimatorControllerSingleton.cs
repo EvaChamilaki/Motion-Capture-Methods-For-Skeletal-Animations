@@ -1,19 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
 
 public class AnimatorControllerSingleton : MonoBehaviour
 {
     private static AnimatorControllerSingleton _instance;
-    public Animator anim;
+    public Animator animator;
+    public AnimatorController Animator_Controller;
+
 
     [HideInInspector]
     public bool showAnims = false;
 
     public void Start()
     {
-        anim = GetComponent<Animator>();
+        animator = GetComponent<Animator>();
     }
 
     public static AnimatorControllerSingleton Instance

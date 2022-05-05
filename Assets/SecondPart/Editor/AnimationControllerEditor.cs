@@ -7,9 +7,13 @@ using UnityEngine;
 [CustomEditor(typeof(AnimatorControllerSingleton))]
 public class AnimationControllerEditor : Editor
 {
-    private AnimatorController obj;
     int selected = 0;
     string[] options = new string[] { };
+    private AnimationClip animationAdd;
+
+    private void Awake()
+    {
+    }
 
     public override void OnInspectorGUI()
     {
@@ -27,7 +31,7 @@ public class AnimationControllerEditor : Editor
 
         if (acEd.showAnims)
         {
-            int size = acEd.anim.runtimeAnimatorController.animationClips.Length;
+            int size = acEd.animator.runtimeAnimatorController.animationClips.Length;
 
             GUILayout.BeginHorizontal();
             {
@@ -38,11 +42,13 @@ public class AnimationControllerEditor : Editor
 
             int i = 0;
 
-            foreach (AnimationClip ac in acEd.anim.runtimeAnimatorController.animationClips)
+            foreach (AnimationClip ac in acEd.animator.runtimeAnimatorController.animationClips)
             {
                 //list[i] = EditorGUILayout.ObjectField("Animation " + i, ac, typeof(GameObject), true) as Animation;
                 GUILayout.BeginHorizontal();
                 {
+                    Debug.Log(ac.name + " : " + Animator.StringToHash(ac.name));
+
                     GUILayout.Label("Animation " + i + ":");
                     EditorGUILayout.SelectableLabel(ac.name, EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
                 }
@@ -51,7 +57,6 @@ public class AnimationControllerEditor : Editor
                 i++;
 
                 list.Add(ac.name);
-                Debug.Log("animation clip: " + ac);
             }
 
 
@@ -62,23 +67,24 @@ public class AnimationControllerEditor : Editor
 
             GUILayout.Label("Add Animation");
 
-            var input = "";
-            var text = EditorGUILayout.TextField("");
-            AnimatorController controller = obj as AnimatorController;
+            animationAdd = EditorGUILayout.ObjectField(animationAdd, typeof(AnimationClip), true) as AnimationClip;
+            AnimatorController controller = acEd.Animator_Controller;
 
             if (GUILayout.Button("Apply"))
             {
-                input = text;
-                Debug.Log(input);
-                AnimationClip m = new AnimationClip { name = text };
+                Debug.Log("an:" + animationAdd);
+                Debug.Log("an:" + animationAdd.name);
+
+                AnimationClip m = new AnimationClip { name = animationAdd.name };
                 controller.AddMotion(m);
+                //AnimatorTransition
+
                 Debug.Log("added");
             }
 
         }
 
         //==========================================REMOVE ANIMATIONS===============================================
-
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
@@ -96,6 +102,7 @@ public class AnimationControllerEditor : Editor
 
         if (GUILayout.Button("Remove"))
         {
+            //RemoveClip("idle");
             Debug.Log("removed");
         }
     }
