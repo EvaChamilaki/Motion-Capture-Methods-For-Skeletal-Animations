@@ -5,12 +5,14 @@ using UnityEngine;
 public class RandomIdleAnim : MonoBehaviour
 {
     private Animator anim;
+    private HashManager hm;
+    private int doSthHash = Animator.StringToHash("DoSomething");
+    private int walkHash = Animator.StringToHash("Walk");
+    private int sitHash = Animator.StringToHash("Sit");
 
     IEnumerator Start()
     {
         anim = GetComponent<Animator>();
-
-        
 
         while (true)
         {
@@ -27,15 +29,15 @@ public class RandomIdleAnim : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                anim.SetTrigger("DoSomething");
+                anim.SetTrigger(doSthHash);
             }
             if (Input.GetKeyDown(KeyCode.W))
             {
-                anim.SetTrigger("Walk");
+                anim.SetTrigger(walkHash);
             }
             if (Input.GetKeyDown(KeyCode.S))
             {
-                anim.SetTrigger("Sit");
+                anim.SetTrigger(sitHash);
             }
         }
     }
