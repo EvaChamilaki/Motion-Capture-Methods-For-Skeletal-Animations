@@ -9,7 +9,9 @@ public class AnimationControllerEditor : Editor
 {
     int selected = 0;
     string[] options = new string[] { };
+
     private AnimationClip animationAdd;
+        private Animation animationRemove;
 
     private void Awake()
     {
@@ -47,7 +49,7 @@ public class AnimationControllerEditor : Editor
                 //list[i] = EditorGUILayout.ObjectField("Animation " + i, ac, typeof(GameObject), true) as Animation;
                 GUILayout.BeginHorizontal();
                 {
-                    Debug.Log(ac.name + " : " + Animator.StringToHash(ac.name));
+                    //Debug.Log(ac.name + " : " + Animator.StringToHash(ac.name));
 
                     GUILayout.Label("Animation " + i + ":");
                     EditorGUILayout.SelectableLabel(ac.name, EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
@@ -58,35 +60,34 @@ public class AnimationControllerEditor : Editor
 
                 list.Add(ac.name);
             }
-
-
-            //==============================================ADD ANIMATIONS===============================================
-
-
-            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-
-            GUILayout.Label("Add Animation");
-
-            animationAdd = EditorGUILayout.ObjectField(animationAdd, typeof(AnimationClip), true) as AnimationClip;
-            AnimatorController controller = acEd.Animator_Controller;
-
-            if (GUILayout.Button("Apply"))
-            {
-                Debug.Log("an:" + animationAdd);
-                Debug.Log("an:" + animationAdd.name);
-
-                AnimationClip m = new AnimationClip { name = animationAdd.name };
-                controller.AddMotion(m);
-                //AnimatorTransition
-
-                Debug.Log("added");
-            }
-
         }
+
+
+        //==============================================ADD ANIMATIONS===============================================
+
+
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
+        GUILayout.Label("Add Animation");
+
+        animationAdd = EditorGUILayout.ObjectField(animationAdd, typeof(AnimationClip), true) as AnimationClip;
+        AnimatorController controller = acEd.Animator_Controller;
+
+        if (GUILayout.Button("Apply"))
+        {
+            AnimationClip m = new AnimationClip { name = animationAdd.name };
+            controller.AddMotion(m).AddExitTransition();
+            AnimatorState add = FindState(controller, animationAdd.name);
+            Debug.Log(add);
+            //AnimatorStateMachine.AddAnyStateTransition(add);
+        }
+        AnimatorStateTransition animatorStateTransition = new AnimatorStateTransition();
+        
 
         //==========================================REMOVE ANIMATIONS===============================================
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+        animationRemove = EditorGUILayout.ObjectField(animationRemove, typeof(Animation), true) as Animation;
 
         EditorGUI.BeginChangeCheck();
 
@@ -102,8 +103,31 @@ public class AnimationControllerEditor : Editor
 
         if (GUILayout.Button("Remove"))
         {
+            //Debug.Log(anim.GetComponents<Animation>());
+            animationRemove.RemoveClip(options[selected]);
+            AnimatorState removable = FindState(controller, animationRemove.name);
+            //AnimatorStateMachine.RemoveState(removable);
+
             //RemoveClip("idle");
             Debug.Log("removed");
         }
+    }
+
+    public AnimatorState FindState(AnimatorController _animCont, string _stateName)
+    {
+        for (int i = 0; i < _animCont.layers.Length; i++)
+        {
+            foreach (var child in _animCont.layers[i].stateMachine.states)
+            {
+                if (child.state.name == _stateName)
+                {
+                    Debug.Log("FOund it: " + child.state);
+                    //Destroy(child.state);
+                    return child.state;
+                }
+            }
+        }
+        Debug.LogError("Could not find state: " + _stateName + " in: " + _animCont.name);
+        return null;
     }
 }
