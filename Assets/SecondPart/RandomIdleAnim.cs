@@ -5,7 +5,6 @@ using UnityEngine;
 public class RandomIdleAnim : MonoBehaviour
 {
     private Animator anim;
-    private HashManager hm;
     private int doSthHash = Animator.StringToHash("DoSomething");
     private int walkHash = Animator.StringToHash("Walk");
     private int sitHash = Animator.StringToHash("Sit");

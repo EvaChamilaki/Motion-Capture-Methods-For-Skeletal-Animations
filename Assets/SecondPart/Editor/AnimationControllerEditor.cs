@@ -11,15 +11,15 @@ public class AnimationControllerEditor : Editor
     string[] options = new string[] { };
 
     private AnimationClip animationAdd;
-        private Animation animationRemove;
-
-    private void Awake()
-    {
-    }
+    private Animation animationRemove;
+    AnimatorStateMachine animStateMach;
+    
 
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
+
+
         List<string> list = new List<string>(options.ToList());
 
         AnimatorControllerSingleton acEd = (AnimatorControllerSingleton)target;
@@ -73,16 +73,16 @@ public class AnimationControllerEditor : Editor
         animationAdd = EditorGUILayout.ObjectField(animationAdd, typeof(AnimationClip), true) as AnimationClip;
         AnimatorController controller = acEd.Animator_Controller;
 
+        animStateMach = controller.layers[0].stateMachine;
+
         if (GUILayout.Button("Apply"))
         {
             AnimationClip m = new AnimationClip { name = animationAdd.name };
             controller.AddMotion(m).AddExitTransition();
             AnimatorState add = FindState(controller, animationAdd.name);
-            Debug.Log(add);
-            //AnimatorStateMachine.AddAnyStateTransition(add);
+            animStateMach.AddAnyStateTransition(add);
         }
-        AnimatorStateTransition animatorStateTransition = new AnimatorStateTransition();
-        
+
 
         //==========================================REMOVE ANIMATIONS===============================================
 
@@ -130,4 +130,5 @@ public class AnimationControllerEditor : Editor
         Debug.LogError("Could not find state: " + _stateName + " in: " + _animCont.name);
         return null;
     }
+
 }
