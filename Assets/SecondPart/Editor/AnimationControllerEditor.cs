@@ -28,6 +28,9 @@ public class AnimationControllerEditor : Editor
         //=========================================EXISTING ANIMATIONS===============================================
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+        AnimatorController controller = acEd.Animator_Controller;
+
+        animStateMach = controller.layers[0].stateMachine;
 
         acEd.showAnims = EditorGUILayout.Foldout(acEd.showAnims, "Existing Animations", true);
 
@@ -71,9 +74,7 @@ public class AnimationControllerEditor : Editor
         GUILayout.Label("Add Animation");
 
         animationAdd = EditorGUILayout.ObjectField(animationAdd, typeof(AnimationClip), true) as AnimationClip;
-        AnimatorController controller = acEd.Animator_Controller;
 
-        animStateMach = controller.layers[0].stateMachine;
 
         if (GUILayout.Button("Apply"))
         {
@@ -104,9 +105,9 @@ public class AnimationControllerEditor : Editor
         if (GUILayout.Button("Remove"))
         {
             //Debug.Log(anim.GetComponents<Animation>());
-            animationRemove.RemoveClip(options[selected]);
-            AnimatorState removable = FindState(controller, animationRemove.name);
-            //AnimatorStateMachine.RemoveState(removable);
+            //animationRemove.RemoveClip(options[selected]);
+            AnimatorState removable = FindState(controller, options[selected]);
+            animStateMach.RemoveState(removable);
 
             //RemoveClip("idle");
             Debug.Log("removed");
