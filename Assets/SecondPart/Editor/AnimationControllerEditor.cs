@@ -97,14 +97,23 @@ public class AnimationControllerEditor : Editor
             {
                 foreach (var s in state.state.transitions)
                 {
-                    if (state.state.name == "StartWalking" && s.isExit)
+                    if (state.state.name == animationAfter.name && s.isExit)
                     {
                         AnimationClip m = new AnimationClip { name = animationAdd.name };
                         controller.AddMotion(m).AddExitTransition();
+
+                        AnimatorState add = FindState(controller, animationAdd.name);
                         AnimatorState animAfter = FindState(controller, animationAfter.name);
+                        animAfter.AddTransition(add);
+
+                        foreach (var trans in animAfter.transitions)
+                        {
+                            if (trans.isExit) {
+                                animAfter.RemoveTransition(trans);
+                            }
+                        }
                     }
                     Debug.Log(state.state.name + " has " + s.isExit);
-                    //state.state.
                 }
             }
         }
@@ -112,6 +121,7 @@ public class AnimationControllerEditor : Editor
         if (GUILayout.Button("Tests"))
         {
             //animStateMach.RemoveAnyStateTransition(animStateMach.anyStateTransitions[3]);
+
             Debug.Log(animStateMach.anyStateTransitions.Length);
             for (int i = 0; i < animStateMach.anyStateTransitions.Length; i++)
             {
