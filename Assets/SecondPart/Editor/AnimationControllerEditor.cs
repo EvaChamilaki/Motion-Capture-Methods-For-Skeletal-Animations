@@ -10,7 +10,7 @@ public class AnimationControllerEditor : Editor
     int selected = 0;
     string[] options = new string[] { };
 
-    private AnimationClip animationAdd, animationAfter;
+    private AnimationClip animationAdd, animationAfter, animationPrevious;
     private Animation animationRemove;
     AnimatorStateMachine animStateMach;
 
@@ -88,10 +88,42 @@ public class AnimationControllerEditor : Editor
             AnimatorState add = FindState(controller, animationAdd.name);
             animStateMach.AddAnyStateTransition(add);
         }
+        animationPrevious = EditorGUILayout.ObjectField(animationPrevious, typeof(AnimationClip), true) as AnimationClip;
 
         animationAfter = EditorGUILayout.ObjectField(animationAfter, typeof(AnimationClip), true) as AnimationClip;
 
-        if (GUILayout.Button("eyo"))
+        if (GUILayout.Button("Between"))
+        {
+            AnimatorState animAfter = FindState(controller, animationAfter.name);
+
+            AnimationClip m = new AnimationClip { name = animationAdd.name };
+            controller.AddMotion(m).AddTransition(animAfter);
+
+            AnimatorState animPrev = FindState(controller, animationPrevious.name);
+
+            foreach (var trans in animPrev.transitions)
+            {
+                //Debug.Log("my name is: " + trans.destinationState.name);
+                if (trans.destinationState != null)
+                {
+                    if (trans.destinationState.name == animationAfter.name)
+                    {
+                        animPrev.RemoveTransition(trans);
+                    }
+                }
+                else
+                {
+                    Debug.Log("It's null");
+                }
+            }
+
+            AnimatorState add = FindState(controller, animationAdd.name);
+
+            animPrev.AddTransition(add);
+        }
+
+
+        if (GUILayout.Button("Exit"))
         {
             foreach (var state in states)
             {
@@ -108,7 +140,8 @@ public class AnimationControllerEditor : Editor
 
                         foreach (var trans in animAfter.transitions)
                         {
-                            if (trans.isExit) {
+                            if (trans.isExit)
+                            {
                                 animAfter.RemoveTransition(trans);
                             }
                         }
@@ -118,10 +151,14 @@ public class AnimationControllerEditor : Editor
             }
         }
 
-        if (GUILayout.Button("Tests"))
+        if (GUILayout.Button("Clear"))
         {
-            //animStateMach.RemoveAnyStateTransition(animStateMach.anyStateTransitions[3]);
+            animStateMach.RemoveAnyStateTransition(animStateMach.anyStateTransitions[3]);
 
+        }
+
+        if (GUILayout.Button("AnyState"))
+        {
             Debug.Log(animStateMach.anyStateTransitions.Length);
             for (int i = 0; i < animStateMach.anyStateTransitions.Length; i++)
             {
