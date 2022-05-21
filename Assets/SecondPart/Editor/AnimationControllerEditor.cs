@@ -10,8 +10,7 @@ public class AnimationControllerEditor : Editor
     int selected = 0;
     string[] options = new string[] { };
 
-    private AnimationClip animationAdd, addAnimationAfterThisOne, addAnimationBeforeThisOne;
-    private Animation animationRemove;
+    private AnimationClip animationAdd, addAnimationAfterThisOne, addAnimationBeforeThisOne, animationRemove;
     AnimatorStateMachine animStateMach;
 
 
@@ -159,7 +158,7 @@ public class AnimationControllerEditor : Editor
         //==========================================REMOVE ANIMATIONS===============================================
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-        animationRemove = EditorGUILayout.ObjectField(animationRemove, typeof(Animation), true) as Animation;
+        animationRemove = EditorGUILayout.ObjectField(animationRemove, typeof(AnimationClip), true) as AnimationClip;
 
         EditorGUI.BeginChangeCheck();
 
@@ -175,8 +174,43 @@ public class AnimationControllerEditor : Editor
 
         if (GUILayout.Button("Remove"))
         {
-            AnimatorState removable = FindState(controller, options[selected]);
-            animStateMach.RemoveState(removable);
+            AnimatorState removable = FindState(controller, animationRemove.name);
+            AnimatorState beforeRemovable = FindPreviousState(controller, animationRemove.name);
+            AnimatorState afterRemovable = FindNextState(controller, animationRemove.name);
+
+            AnimatorStateTransition trans = removable.transitions[0];
+
+            if (beforeRemovable != null && trans.isExit)
+            {
+                Debug.Log(beforeRemovable);
+                //string dest = removable.transitions[0].destinationState.name;
+                removable.RemoveTransition(trans);
+                animStateMach.RemoveState(removable);
+                beforeRemovable.AddExitTransition();
+            }
+            else if (beforeRemovable != null && afterRemovable != null)
+            {
+                beforeRemovable.AddTransition(afterRemovable);
+                animStateMach.RemoveState(removable);
+            }
+            else if (beforeRemovable == null && afterRemovable == null)
+            {
+                animStateMach.RemoveState(removable);
+            }
+            else
+            {
+                foreach (var asTrans in animStateMach.anyStateTransitions)
+                {
+                    if (asTrans.destinationState.name == removable.name)
+                    {
+                        animStateMach.AddAnyStateTransition(afterRemovable);
+
+                        animStateMach.RemoveAnyStateTransition(asTrans);
+                        animStateMach.RemoveState(removable);
+                    }
+                }
+            }
+            //AnimatorState destinationState = FindState(controller, dest);
         }
     }
 
@@ -198,9 +232,9 @@ public class AnimationControllerEditor : Editor
         return null;
     }
 
-    public AnimatorState FindNextState(AnimatorController animCont)
+    public AnimatorState FindNextState(AnimatorController animCont, string afterThisState)
     {
-        AnimatorState afterThisAnim = FindState(animCont, addAnimationAfterThisOne.name);
+        AnimatorState afterThisAnim = FindState(animCont, afterThisState);
 
         foreach (var trans in afterThisAnim.transitions)
         {
@@ -213,7 +247,7 @@ public class AnimationControllerEditor : Editor
         return null;
     }
 
-    public AnimatorState FindPreviousState(AnimatorController animCont)
+    public AnimatorState FindPreviousState(AnimatorController animCont, string beforeThisState)
     {
         for (int i = 0; i < animCont.layers.Length; i++)
         {
@@ -223,7 +257,7 @@ public class AnimationControllerEditor : Editor
                 {
                     if (s.destinationState != null)
                     {
-                        if (s.destinationState.name == addAnimationBeforeThisOne.name)
+                        if (s.destinationState.name == beforeThisState)
                             return state.state;
                     }
                 }
@@ -247,7 +281,7 @@ public class AnimationControllerEditor : Editor
 
     public void SimpleAfterAddition(AnimatorController animCont)
     {
-        AnimatorState nextState = FindNextState(animCont);
+        AnimatorState nextState = FindNextState(animCont, addAnimationAfterThisOne.name);
 
         if (nextState == null)
         {
@@ -278,7 +312,7 @@ public class AnimationControllerEditor : Editor
 
     public void SimpleBeforeAddition(AnimatorController animCont)
     {
-        AnimatorState previousState = FindPreviousState(animCont);
+        AnimatorState previousState = FindPreviousState(animCont, addAnimationBeforeThisOne.name);
 
         if (previousState == null)
         {
@@ -356,13 +390,13 @@ public class AnimationControllerEditor : Editor
                 animCont.AddMotion(m).AddTransition(animAfter);
 
 
-                foreach (var trans in animPrev.transitions)
+                foreach (var trans in animAfter.transitions)
                 {
                     if (trans.destinationState != null)
                     {
-                        if (trans.destinationState.name == addAnimationAfterThisOne.name)
+                        if (trans.destinationState.name == addAnimationBeforeThisOne.name)
                         {
-                            animPrev.RemoveTransition(trans);
+                            animAfter.RemoveTransition(trans);
                         }
                     }
                 }
