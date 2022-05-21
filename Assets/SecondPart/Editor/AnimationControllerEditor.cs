@@ -81,7 +81,6 @@ public class AnimationControllerEditor : Editor
         if (acEd.showBeforeThisAnim)
         {
             addAnimationBeforeThisOne = EditorGUILayout.ObjectField(addAnimationBeforeThisOne, typeof(AnimationClip), true) as AnimationClip;
-
         }
 
         acEd.showAfterThisAnim = EditorGUILayout.Foldout(acEd.showAfterThisAnim, "After this Animation", true);
@@ -93,40 +92,51 @@ public class AnimationControllerEditor : Editor
 
         GUILayout.Space(10);
 
-        if (GUILayout.Button("Simple"))
+        if (GUILayout.Button("Apply"))
         {
-            SimpleAddition(controller);
-        }
+            if (animationAdd == null)
+            {
+                Debug.LogError("Insert Animation Clips to the corresponding fields.");
+            }
+            else if (addAnimationBeforeThisOne == null && addAnimationAfterThisOne == null)
+            {
+                SimpleAddition(controller);
+            }
+            else if (addAnimationBeforeThisOne != null && addAnimationAfterThisOne == null)
+            {
+                bool isAnyState = false;
 
-        if (GUILayout.Button("Between"))
-        {
-            BetweenTwoAnimStates(controller);
-        }
+                for (int i = 0; i < animStateMach.anyStateTransitions.Length; i++)
+                {
+                    if (animStateMach.anyStateTransitions[i].destinationState.name == addAnimationBeforeThisOne.name)
+                    {
+                        isAnyState = true;
+                        FromAnyStateTransitionAddState(controller, i);
+                    }
+                }
+                if (!isAnyState)
+                {
+                    SimpleBeforeAddition(controller);
+                }
+            }
+            else if (addAnimationBeforeThisOne == null && addAnimationAfterThisOne != null)
+            {
+                AnimatorState animAfter = FindState(controller, addAnimationAfterThisOne.name);
+                AnimatorStateTransition transition = animAfter.transitions[0];
 
-        if (GUILayout.Button("After"))
-        {
-            SimpleAfterAddition(controller);
-        }
-
-        if (GUILayout.Button("Previous"))
-        {
-            SimpleBeforeAddition(controller);
-        }
-
-        if (GUILayout.Button("Exit"))
-        {
-            ToExitTransition(controller, states);
-        }
-
-        if (GUILayout.Button("Clear"))
-        {
-            animStateMach.RemoveAnyStateTransition(animStateMach.anyStateTransitions[3]);
-
-        }
-
-        if (GUILayout.Button("AnyState"))
-        {
-            FromAnyStateTransition(controller);
+                if (transition.isExit)
+                {
+                    ToExitTransitionAddState(controller, transition, animAfter);
+                }
+                else
+                {
+                    SimpleAfterAddition(controller);
+                }
+            }
+            else if (addAnimationBeforeThisOne != null && addAnimationAfterThisOne != null)
+            {
+                BetweenTwoAnimStatesAddState(controller);
+            }
         }
 
         //==========================================REMOVE ANIMATIONS===============================================
@@ -148,14 +158,12 @@ public class AnimationControllerEditor : Editor
 
         if (GUILayout.Button("Remove"))
         {
-            //animationRemove.RemoveClip(options[selected]);
             AnimatorState removable = FindState(controller, options[selected]);
             animStateMach.RemoveState(removable);
-
-            //RemoveClip("idle");
-            Debug.Log("removed");
         }
     }
+
+    //=================================================FIND STATE FUNCTIONS======================================================
 
     public AnimatorState FindState(AnimatorController animCont, string stateName)
     {
@@ -165,7 +173,6 @@ public class AnimationControllerEditor : Editor
             {
                 if (child.state.name == stateName)
                 {
-                    Debug.Log("Found it: " + child.state);
                     return child.state;
                 }
             }
@@ -173,7 +180,7 @@ public class AnimationControllerEditor : Editor
         Debug.LogError("Could not find state: " + stateName);
         return null;
     }
-    
+
     public AnimatorState FindNextState(AnimatorController animCont)
     {
         AnimatorState afterThisAnim = FindState(animCont, addAnimationAfterThisOne.name);
@@ -184,11 +191,8 @@ public class AnimationControllerEditor : Editor
             {
                 return trans.destinationState;
             }
-            else
-            {
-                Debug.Log("It's null");
-            }
         }
+        Debug.LogError("Could not find a next state.");
         return null;
     }
 
@@ -208,8 +212,12 @@ public class AnimationControllerEditor : Editor
                 }
             }
         }
+        Debug.LogError("Could not find a previous state.");
         return null;
     }
+
+
+    //=================================================ADD STATE FUNCTIONS=======================================================
 
     public void SimpleAddition(AnimatorController animCont)
     {
@@ -240,10 +248,6 @@ public class AnimationControllerEditor : Editor
                     afterThisState.RemoveTransition(trans);
                 }
             }
-            else
-            {
-                Debug.Log("It's null");
-            }
         }
     }
 
@@ -267,46 +271,37 @@ public class AnimationControllerEditor : Editor
                     previousState.RemoveTransition(trans);
                 }
             }
-            else
-            {
-                Debug.Log("It's null");
-            }
         }
     }
-    
-    public void ToExitTransition(AnimatorController animCont, ChildAnimatorState[] states)
+
+    public void ToExitTransitionAddState(AnimatorController animCont, AnimatorStateTransition transition, AnimatorState animAfter)
     {
-        foreach (var state in states)
+        if (transition.isExit)
         {
-            foreach (var s in state.state.transitions)
+            AnimationClip m = new AnimationClip { name = animationAdd.name };
+            animCont.AddMotion(m).AddExitTransition();
+
+            AnimatorState add = FindState(animCont, animationAdd.name);
+            animAfter.AddTransition(add);
+
+            foreach (var trans in animAfter.transitions)
             {
-                if (state.state.name == addAnimationAfterThisOne.name && s.isExit)
+                if (trans.isExit)
                 {
-                    AnimationClip m = new AnimationClip { name = animationAdd.name };
-                    animCont.AddMotion(m).AddExitTransition();
-
-                    AnimatorState add = FindState(animCont, animationAdd.name);
-                    AnimatorState animAfter = FindState(animCont, addAnimationAfterThisOne.name);
-                    animAfter.AddTransition(add);
-
-                    foreach (var trans in animAfter.transitions)
-                    {
-                        if (trans.isExit)
-                        {
-                            animAfter.RemoveTransition(trans);
-                        }
-                    }
+                    animAfter.RemoveTransition(trans);
                 }
             }
         }
     }
 
-    public void BetweenTwoAnimStates(AnimatorController animCont)
+    public void BetweenTwoAnimStatesAddState(AnimatorController animCont)
     {
-        if (addAnimationBeforeThisOne.name == addAnimationAfterThisOne.name) {
-            Debug.LogError("You can not add a new Animation State that the parent and the child is the same Animation State");
+        if (addAnimationBeforeThisOne.name == addAnimationAfterThisOne.name)
+        {
+            Debug.LogError("You can not add a new Animation State that the parent and the child is the same Animation State.");
         }
-        else {
+        else
+        {
             AnimatorState animAfter = FindState(animCont, addAnimationAfterThisOne.name);
 
             AnimationClip m = new AnimationClip { name = animationAdd.name };
@@ -323,10 +318,6 @@ public class AnimationControllerEditor : Editor
                         animPrev.RemoveTransition(trans);
                     }
                 }
-                else
-                {
-                    Debug.Log("It's null");
-                }
             }
 
             AnimatorState add = FindState(animCont, animationAdd.name);
@@ -335,25 +326,17 @@ public class AnimationControllerEditor : Editor
         }
     }
 
-    public void FromAnyStateTransition(AnimatorController animCont)
+    public void FromAnyStateTransitionAddState(AnimatorController animCont, int i)
     {
-        for (int i = 0; i < animStateMach.anyStateTransitions.Length; i++)
-        {
-            Debug.Log(i + ": " + animStateMach.anyStateTransitions[i].destinationState.name);
+        AnimationClip m = new AnimationClip { name = animationAdd.name };
 
-            if (animStateMach.anyStateTransitions[i].destinationState.name == addAnimationBeforeThisOne.name)
-            {
-                AnimationClip m = new AnimationClip { name = animationAdd.name };
+        AnimatorState animationStateAddBeforeThis = FindState(animCont, addAnimationBeforeThisOne.name);
+        animCont.AddMotion(m).AddTransition(animationStateAddBeforeThis);
 
-                AnimatorState animationStateAddBeforeThis = FindState(animCont, addAnimationBeforeThisOne.name);
-                animCont.AddMotion(m).AddTransition(animationStateAddBeforeThis);
+        AnimatorState add = FindState(animCont, animationAdd.name);
+        animStateMach.AddAnyStateTransition(add);
 
-                AnimatorState add = FindState(animCont, animationAdd.name);
-                animStateMach.AddAnyStateTransition(add);
-
-                animStateMach.RemoveAnyStateTransition(animStateMach.anyStateTransitions[i]);
-            }
-        }
+        animStateMach.RemoveAnyStateTransition(animStateMach.anyStateTransitions[i]);
     }
 
 }
