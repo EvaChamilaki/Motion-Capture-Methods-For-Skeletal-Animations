@@ -103,6 +103,15 @@ public class AnimationControllerEditor : Editor
             BetweenTwoAnimStates(controller);
         }
 
+        if (GUILayout.Button("After"))
+        {
+            SimpleAfterAddition(controller);
+        }
+
+        if (GUILayout.Button("Previous"))
+        {
+            SimpleBeforeAddition(controller);
+        }
 
         if (GUILayout.Button("Exit"))
         {
@@ -211,6 +220,60 @@ public class AnimationControllerEditor : Editor
         animStateMach.AddAnyStateTransition(add);
     }
 
+    public void SimpleAfterAddition(AnimatorController animCont)
+    {
+        AnimatorState nextState = FindNextState(animCont);
+        AnimatorState afterThisState = FindState(animCont, addAnimationAfterThisOne.name);
+
+        AnimationClip m = new AnimationClip { name = animationAdd.name };
+        animCont.AddMotion(m).AddTransition(nextState);
+
+        AnimatorState add = FindState(animCont, animationAdd.name);
+        afterThisState.AddTransition(add);
+
+        foreach (var trans in afterThisState.transitions)
+        {
+            if (trans.destinationState != null)
+            {
+                if (trans.destinationState.name == nextState.name)
+                {
+                    afterThisState.RemoveTransition(trans);
+                }
+            }
+            else
+            {
+                Debug.Log("It's null");
+            }
+        }
+    }
+
+    public void SimpleBeforeAddition(AnimatorController animCont)
+    {
+        AnimatorState previousState = FindPreviousState(animCont);
+        AnimatorState beforeThisState = FindState(animCont, addAnimationBeforeThisOne.name);
+
+        AnimationClip m = new AnimationClip { name = animationAdd.name };
+        animCont.AddMotion(m).AddTransition(beforeThisState);
+
+        AnimatorState add = FindState(animCont, animationAdd.name);
+        previousState.AddTransition(add);
+
+        foreach (var trans in previousState.transitions)
+        {
+            if (trans.destinationState != null)
+            {
+                if (trans.destinationState.name == beforeThisState.name)
+                {
+                    previousState.RemoveTransition(trans);
+                }
+            }
+            else
+            {
+                Debug.Log("It's null");
+            }
+        }
+    }
+    
     public void ToExitTransition(AnimatorController animCont, ChildAnimatorState[] states)
     {
         foreach (var state in states)
