@@ -164,7 +164,43 @@ public class AnimationControllerEditor : Editor
         Debug.LogError("Could not find state: " + stateName);
         return null;
     }
+    
+    public AnimatorState FindNextState(AnimatorController animCont)
+    {
+        AnimatorState afterThisAnim = FindState(animCont, addAnimationAfterThisOne.name);
 
+        foreach (var trans in afterThisAnim.transitions)
+        {
+            if (trans.destinationState != null)
+            {
+                return trans.destinationState;
+            }
+            else
+            {
+                Debug.Log("It's null");
+            }
+        }
+        return null;
+    }
+
+    public AnimatorState FindPreviousState(AnimatorController animCont)
+    {
+        for (int i = 0; i < animCont.layers.Length; i++)
+        {
+            foreach (var state in animCont.layers[0].stateMachine.states)
+            {
+                foreach (var s in state.state.transitions)
+                {
+                    if (s.destinationState != null)
+                    {
+                        if (s.destinationState.name == addAnimationBeforeThisOne.name)
+                            return state.state;
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
     public void SimpleAddition(AnimatorController animCont)
     {
