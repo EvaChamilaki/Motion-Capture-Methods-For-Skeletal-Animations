@@ -14,6 +14,13 @@ public class AnimatorControllerSingleton : MonoBehaviour
     [HideInInspector]
     public bool showAnims = false;
 
+    [HideInInspector]
+    public bool showBeforeThisAnim = false;
+    
+    [HideInInspector]
+    public bool showAfterThisAnim = false;
+
+
     public void Start()
     {
         animator = GetComponent<Animator>();
