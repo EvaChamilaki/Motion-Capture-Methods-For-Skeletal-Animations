@@ -12,13 +12,13 @@ public class AnimatorControllerSingleton : MonoBehaviour
 
 
     [HideInInspector]
-    public bool showAnims = false;
+    public bool showAnims = false, showSubStateMach = false, showAnimContr = false;
 
     [HideInInspector]
-    public bool showBeforeThisAnim = false;
+    public bool showBeforeThisAnim = false, showBeforeThisAnimSubSM = false;
     
     [HideInInspector]
-    public bool showAfterThisAnim = false;
+    public bool showAfterThisAnim = false, showAfterThisAnimSubSM = false;
 
 
     public void Start()
