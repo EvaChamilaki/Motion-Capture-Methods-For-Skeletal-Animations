@@ -9,6 +9,7 @@ public class AnimatorControllerSingleton : MonoBehaviour
     private static AnimatorControllerSingleton _instance;
     public Animator animator;
     public AnimatorController Animator_Controller;
+    public GameObject Character;
 
 
     [HideInInspector]

@@ -12,7 +12,8 @@ public class AnimationControllerEditor : Editor
 
     private AnimationClip animationAdd, addAnimationAfterThisOne, addAnimationBeforeThisOne
         , animationRemove, addDefaultState, animationAddToStateMach, addAnimationAfterThisOneSubSM, addAnimationBeforeThisOneSubSM;
-    AnimatorStateMachine animStateMach;
+    private AnimatorStateMachine animStateMach;
+    private List<AnimationClip> animClips = new List<AnimationClip>();
 
 
     public override void OnInspectorGUI()
@@ -24,6 +25,7 @@ public class AnimationControllerEditor : Editor
 
 
         AnimatorControllerSingleton acEd = (AnimatorControllerSingleton)target;
+
 
 
         //=========================================EXISTING ANIMATIONS===============================================
@@ -70,6 +72,15 @@ public class AnimationControllerEditor : Editor
 
         acEd.showSubStateMach = EditorGUILayout.Foldout(acEd.showSubStateMach, "Sub State Machine", true);
 
+        if (GUILayout.Button("TEst"))
+        {
+            foreach (var i in animClips)
+            {
+                Debug.Log($"list elem: {i}");
+            }
+        }
+
+
         if (acEd.showSubStateMach)
         {
             GUILayout.Label("Set as Default Animation:");
@@ -82,6 +93,7 @@ public class AnimationControllerEditor : Editor
             {
                 AnimationClip m = new AnimationClip { name = addDefaultState.name };
                 controller.AddMotion(m);
+                animClips.Add(m);
 
                 AnimatorState default_state = FindState(controller, addDefaultState.name);
                 animStateMach.defaultState = default_state;
@@ -94,6 +106,8 @@ public class AnimationControllerEditor : Editor
                     Debug.Log(s.stateMachine.name);
                 }
                 default_state.AddTransition(ast);
+
+                AddToAnimationListOfCharacter(addDefaultState);
             }
 
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
@@ -119,7 +133,6 @@ public class AnimationControllerEditor : Editor
             }
 
             GUILayout.Space(10);
-
             if (GUILayout.Button("Apply"))
             {
                 if (animationAddToStateMach == null)
@@ -129,6 +142,8 @@ public class AnimationControllerEditor : Editor
                 else if (addAnimationBeforeThisOneSubSM == null && addAnimationAfterThisOneSubSM == null)
                 {
                     SimpleAdditionSubSM(stateMachine);
+                    animClips.Add(animationAddToStateMach);
+                    AddToAnimationListOfCharacter(animationAddToStateMach);
                 }
                 else if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM == null)
                 {
@@ -158,6 +173,8 @@ public class AnimationControllerEditor : Editor
                         {
                             SimpleBeforeAdditionSubSM(stateMachine);
                         }
+                        animClips.Add(animationAddToStateMach);
+                        AddToAnimationListOfCharacter(animationAddToStateMach);
                     }
                 }
                 else if (addAnimationBeforeThisOneSubSM == null && addAnimationAfterThisOneSubSM != null)
@@ -180,11 +197,14 @@ public class AnimationControllerEditor : Editor
                         {
                             SimpleAfterAdditionSubSM(stateMachine);
                         }
+                        animClips.Add(animationAddToStateMach);
                     }
                 }
                 else if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM != null)
                 {
                     BetweenTwoAnimStatesAddStateSubSM(stateMachine);
+                    animClips.Add(animationAddToStateMach);
+                    AddToAnimationListOfCharacter(animationAddToStateMach);
                 }
             }
         }
@@ -222,13 +242,18 @@ public class AnimationControllerEditor : Editor
 
             if (GUILayout.Button("Apply"))
             {
+                AnimationClip m = new AnimationClip { name = animationAdd.name };
+
                 if (animationAdd == null)
                 {
                     Debug.LogError("Insert Animation Clips to the corresponding fields.");
                 }
                 else if (addAnimationBeforeThisOne == null && addAnimationAfterThisOne == null)
                 {
-                    SimpleAddition(controller);
+                    SimpleAddition(controller, m);
+
+                    animClips.Add(m);
+                    AddToAnimationListOfCharacter(animationAddToStateMach);
                 }
                 else if (addAnimationBeforeThisOne != null && addAnimationAfterThisOne == null)
                 {
@@ -254,6 +279,8 @@ public class AnimationControllerEditor : Editor
                         {
                             SimpleBeforeAddition(controller);
                         }
+                        animClips.Add(m);
+                        AddToAnimationListOfCharacter(animationAddToStateMach);
                     }
                 }
                 else if (addAnimationBeforeThisOne == null && addAnimationAfterThisOne != null)
@@ -277,11 +304,14 @@ public class AnimationControllerEditor : Editor
                         {
                             SimpleAfterAddition(controller);
                         }
+                        animClips.Add(m);
+                        AddToAnimationListOfCharacter(animationAddToStateMach);
                     }
                 }
                 else if (addAnimationBeforeThisOne != null && addAnimationAfterThisOne != null)
                 {
                     BetweenTwoAnimStatesAddState(controller);
+                    AddToAnimationListOfCharacter(animationAddToStateMach);
                 }
             }
         }
@@ -319,17 +349,40 @@ public class AnimationControllerEditor : Editor
                 animStateMach.RemoveState(removable);
 
                 beforeRemovable.AddTransition(default_state);
+
+                animClips.Remove(animationRemove);
+                RemoveFromAnimationListOfCharacter(animationRemove);
+            }
+            else if (beforeRemovable == null && trans.destinationState == default_state)
+            {
+                foreach (var asTrans in animStateMach.anyStateTransitions)
+                {
+                    if (asTrans.destinationState.name == removable.name)
+                    {
+                        animStateMach.RemoveAnyStateTransition(asTrans);
+                        animStateMach.RemoveState(removable);
+
+                        animClips.Remove(animationRemove);
+                        RemoveFromAnimationListOfCharacter(animationRemove);
+                    }
+                }
             }
             else if (beforeRemovable != null && afterRemovable != null)
             {
                 beforeRemovable.AddTransition(afterRemovable);
                 animStateMach.RemoveState(removable);
+
+                animClips.Remove(animationRemove);
+                RemoveFromAnimationListOfCharacter(animationRemove);
             }
             else if (beforeRemovable == null && afterRemovable == null)
             {
                 animStateMach.RemoveState(removable);
+
+                animClips.Remove(animationRemove);
+                RemoveFromAnimationListOfCharacter(animationRemove);
             }
-            else
+            else if (beforeRemovable == null && afterRemovable != null)
             {
                 foreach (var asTrans in animStateMach.anyStateTransitions)
                 {
@@ -339,11 +392,28 @@ public class AnimationControllerEditor : Editor
 
                         animStateMach.RemoveAnyStateTransition(asTrans);
                         animStateMach.RemoveState(removable);
+
+                        animClips.Remove(animationRemove);
+                        RemoveFromAnimationListOfCharacter(animationRemove);
                     }
                 }
             }
         }
+
+
+        void AddToAnimationListOfCharacter(AnimationClip acAdd)
+        {
+            acAdd.legacy = true;
+            acEd.Character.GetComponent<Animation>().AddClip(acAdd, acAdd.name);
+        }
+
+        void RemoveFromAnimationListOfCharacter(AnimationClip accRem)
+        {
+            acEd.Character.GetComponent<Animation>().RemoveClip(accRem);
+        }
     }
+
+
 
     //=================================================FIND STATE FUNCTIONS======================================================
 
@@ -449,16 +519,15 @@ public class AnimationControllerEditor : Editor
     //=================================================ADD STATE FUNCTIONS(Animator)=======================================================
 
 
-    public void SimpleAddition(AnimatorController animCont)
+    public void SimpleAddition(AnimatorController animCont, AnimationClip m)
     {
-        AnimationClip m = new AnimationClip { name = animationAdd.name };
         AnimatorState default_state = animStateMach.defaultState;
         animCont.AddMotion(m).AddTransition(default_state);
 
         AnimatorState add = FindState(animCont, animationAdd.name);
         animStateMach.AddAnyStateTransition(add);
     }
-    
+
     public void SimpleAfterAddition(AnimatorController animCont)
     {
         AnimatorState nextState = FindNextState(animCont, addAnimationAfterThisOne.name);
@@ -553,14 +622,17 @@ public class AnimationControllerEditor : Editor
             if (animAfter == null && animPrev != null)
             {
                 Debug.LogError("The animation state you selected as a Next Animation State doesn't exist in the AnimatorController.");
+                return;
             }
             else if (animAfter != null && animPrev == null)
             {
                 Debug.LogError("The animation state you selected as a Before Animation State doesn't exist in the AnimatorController.");
+                return;
             }
             else if (animAfter == null && animPrev == null)
             {
                 Debug.LogError("Neither of the animation states you selected as a Before and Next Animation State exist in the AnimatorController.");
+                return;
             }
             else
             {
@@ -582,10 +654,11 @@ public class AnimationControllerEditor : Editor
                 AnimatorState add = FindState(animCont, animationAdd.name);
 
                 animAfter.AddTransition(add);
+                animClips.Add(m);
             }
         }
     }
-    
+
     public void FromAnyStateTransitionAddState(AnimatorController animCont, int i)
     {
         AnimationClip m = new AnimationClip { name = animationAdd.name };
@@ -613,7 +686,7 @@ public class AnimationControllerEditor : Editor
         newStateInSubSM.motion = animationAddToStateMach;
         newStateInSubSM.AddExitTransition();
     }
-    
+
     public void SimpleAfterAdditionSubSM(AnimatorStateMachine stateMachine)
     {
         AnimatorState nextState = FindNextStateSubSM(stateMachine, addAnimationAfterThisOneSubSM.name);
@@ -712,14 +785,17 @@ public class AnimationControllerEditor : Editor
             if (animAfter == null && animPrev != null)
             {
                 Debug.LogError("The animation state you selected as a Next Animation State doesn't exist in the sub State Machine.");
+                return;
             }
             else if (animAfter != null && animPrev == null)
             {
                 Debug.LogError("The animation state you selected as a Before Animation State doesn't exist in the sub State Machine.");
+                return;
             }
             else if (animAfter == null && animPrev == null)
             {
                 Debug.LogError("Neither of the animation states you selected as a Before and Next Animation State exist in the sub State Machine.");
+                return;
             }
             else
             {
@@ -740,6 +816,7 @@ public class AnimationControllerEditor : Editor
                 add.motion = animationAddToStateMach;
                 add.AddTransition(animPrev);
                 animAfter.AddTransition(add);
+                animClips.Add(animationAddToStateMach);
             }
         }
     }
