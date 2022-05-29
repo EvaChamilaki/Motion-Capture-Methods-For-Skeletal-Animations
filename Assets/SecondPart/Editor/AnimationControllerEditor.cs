@@ -28,8 +28,9 @@ public class AnimationControllerEditor : Editor
         base.OnInspectorGUI();
 
         //EditorApplication.playModeStateChanged = HandleOnPlayModeChanged;
-
         List<string> list = new List<string>(options.ToList());
+
+
         AnimatorControllerSingleton acEd = (AnimatorControllerSingleton)target;
 
         //void HandleOnPlayModeChanged()
@@ -52,10 +53,10 @@ public class AnimationControllerEditor : Editor
         if (acEd.showAnims)
         {
             int size = acEd.animator.runtimeAnimatorController.animationClips.Length;
-            if (animStateMach.stateMachines[0].stateMachine != null)
-            {
-                size += animStateMach.stateMachines[0].stateMachine.states.Length;
-            }
+            //if (animStateMach.stateMachines[0].stateMachine != null)
+            //{
+            //    size += animStateMach.stateMachines[0].stateMachine.states.Length;
+            //}
             GUILayout.BeginHorizontal();
             {
                 GUILayout.Label("Size:          ");
@@ -101,14 +102,25 @@ public class AnimationControllerEditor : Editor
 
         if (GUILayout.Button("TEst"))
         {
-            foreach (var i in acEd.animClips)
+            foreach (var e in list)
             {
-                Debug.Log($"list elem: {i}");
+                Debug.Log($"lest: {e}");
+
             }
+
+            foreach (var i in animStateMach.stateMachines[0].stateMachine.states)
+            {
+                Debug.Log($"in stmach: {i.state.name}");
+            }
+
+            //foreach (var i in acEd.animClips)
+            //{
+            //    Debug.Log($"list elem: {i}");
+            //}
             //AnimationClip clip = FindAnimation(acEd.animator, "Bored");
             //Debug.Log(clip);
             //SequenceOfAnimations(controller, "StandingScrollingPhone");
-            SequenceOfAnimationsSubSM(animStateMach, "Bored", acEd.Character.GetComponent<Animation>());
+            //SequenceOfAnimationsSubSM(animStateMach, "Bored", acEd.Character.GetComponent<Animation>());
         }
 
 
@@ -124,6 +136,7 @@ public class AnimationControllerEditor : Editor
             {
                 AnimationClip m = new AnimationClip { name = addDefaultState.name };
                 controller.AddMotion(m);
+                list.Add(addDefaultState.name);
 
                 AnimatorState default_state = FindState(controller, addDefaultState.name);
                 animStateMach.defaultState = default_state;
@@ -365,60 +378,126 @@ public class AnimationControllerEditor : Editor
 
         if (GUILayout.Button("Remove"))
         {
-            AnimatorState removable = FindState(controller, animationRemove.name);
-            AnimatorState beforeRemovable = FindPreviousState(controller, animationRemove.name);
-            AnimatorState afterRemovable = FindNextState(controller, animationRemove.name);
-            AnimatorState default_state = animStateMach.defaultState;
-
-            AnimatorStateTransition trans = removable.transitions[0];
-
-            if (beforeRemovable != null && trans.destinationState == default_state)
+            AnimatorState removable = FindState(controller, options[selected]);
+            if (removable == null)
             {
-                removable.RemoveTransition(trans);
-                animStateMach.RemoveState(removable);
+                Debug.Log($"not here {options[selected]}");
+                AnimatorState removeSt = FindStateSubSM(stateMachine, options[selected]);
+                Debug.Log(removeSt.name);
 
-                beforeRemovable.AddTransition(default_state);
+                AnimatorState beforeRemovablesubSM = FindPreviousStateSubSM(stateMachine, options[selected]);
+                AnimatorState afterRemovablesubSM = FindNextStateSubSM(stateMachine, options[selected]);
 
-                RemoveFromAnimationListOfCharacter(animationRemove);
-            }
-            else if (beforeRemovable == null && trans.destinationState == default_state)
-            {
-                foreach (var asTrans in animStateMach.anyStateTransitions)
+                AnimatorStateTransition trans = removeSt.transitions[0];
+
+                if (afterRemovablesubSM == null && trans.isExit)
                 {
-                    if (asTrans.destinationState.name == removable.name)
-                    {
-                        animStateMach.RemoveAnyStateTransition(asTrans);
-                        animStateMach.RemoveState(removable);
+                    removeSt.RemoveTransition(trans);
+                    stateMachine.RemoveState(removeSt);
 
-                        RemoveFromAnimationListOfCharacter(animationRemove);
+                    beforeRemovablesubSM.AddExitTransition();
+
+                    RemoveFromAnimationListOfCharacter(animationRemove);
+                }
+                else if (beforeRemovablesubSM != null && afterRemovablesubSM == null)
+                {
+                    foreach (var asTrans in stateMachine.entryTransitions)
+                    {
+                        if (asTrans.destinationState.name == removeSt.name)
+                        {
+                            stateMachine.RemoveEntryTransition(asTrans);
+                            stateMachine.RemoveState(removeSt);
+
+                            RemoveFromAnimationListOfCharacter(animationRemove);
+                        }
+                    }
+                }
+                else if (beforeRemovablesubSM != null && afterRemovablesubSM != null)
+                {
+                    beforeRemovablesubSM.AddTransition(afterRemovablesubSM);
+                    stateMachine.RemoveState(removeSt);
+
+                    RemoveFromAnimationListOfCharacter(animationRemove);
+                }
+                else if (beforeRemovablesubSM == null && afterRemovablesubSM == null)
+                {
+                    stateMachine.RemoveState(removeSt);
+
+                    RemoveFromAnimationListOfCharacter(animationRemove);
+                }
+                else if (beforeRemovablesubSM == null && afterRemovablesubSM != null)
+                {
+                    foreach (var asTrans in stateMachine.entryTransitions)
+                    {
+                        if (asTrans.destinationState.name == removeSt.name)
+                        {
+                            stateMachine.AddEntryTransition(afterRemovablesubSM);
+
+                            stateMachine.RemoveEntryTransition(asTrans);
+                            stateMachine.RemoveState(removeSt);
+
+                            RemoveFromAnimationListOfCharacter(animationRemove);
+                        }
                     }
                 }
             }
-            else if (beforeRemovable != null && afterRemovable != null)
+            else
             {
-                beforeRemovable.AddTransition(afterRemovable);
-                animStateMach.RemoveState(removable);
+                AnimatorState beforeRemovable = FindPreviousState(controller, options[selected]);
+                AnimatorState afterRemovable = FindNextState(controller, options[selected]);
+                AnimatorState default_state = animStateMach.defaultState;
 
-                RemoveFromAnimationListOfCharacter(animationRemove);
-            }
-            else if (beforeRemovable == null && afterRemovable == null)
-            {
-                animStateMach.RemoveState(removable);
+                AnimatorStateTransition trans = removable.transitions[0];
 
-                RemoveFromAnimationListOfCharacter(animationRemove);
-            }
-            else if (beforeRemovable == null && afterRemovable != null)
-            {
-                foreach (var asTrans in animStateMach.anyStateTransitions)
+
+                if (beforeRemovable != null && trans.destinationState == default_state)
                 {
-                    if (asTrans.destinationState.name == removable.name)
+                    removable.RemoveTransition(trans);
+                    animStateMach.RemoveState(removable);
+
+                    beforeRemovable.AddTransition(default_state);
+
+                    RemoveFromAnimationListOfCharacter(animationRemove);
+                }
+                else if (beforeRemovable == null && trans.destinationState == default_state)
+                {
+                    foreach (var asTrans in animStateMach.anyStateTransitions)
                     {
-                        animStateMach.AddAnyStateTransition(afterRemovable);
+                        if (asTrans.destinationState.name == removable.name)
+                        {
+                            animStateMach.RemoveAnyStateTransition(asTrans);
+                            animStateMach.RemoveState(removable);
 
-                        animStateMach.RemoveAnyStateTransition(asTrans);
-                        animStateMach.RemoveState(removable);
+                            RemoveFromAnimationListOfCharacter(animationRemove);
+                        }
+                    }
+                }
+                else if (beforeRemovable != null && afterRemovable != null)
+                {
+                    beforeRemovable.AddTransition(afterRemovable);
+                    animStateMach.RemoveState(removable);
 
-                        RemoveFromAnimationListOfCharacter(animationRemove);
+                    RemoveFromAnimationListOfCharacter(animationRemove);
+                }
+                else if (beforeRemovable == null && afterRemovable == null)
+                {
+                    animStateMach.RemoveState(removable);
+
+                    RemoveFromAnimationListOfCharacter(animationRemove);
+                }
+                else if (beforeRemovable == null && afterRemovable != null)
+                {
+                    foreach (var asTrans in animStateMach.anyStateTransitions)
+                    {
+                        if (asTrans.destinationState.name == removable.name)
+                        {
+                            animStateMach.AddAnyStateTransition(afterRemovable);
+
+                            animStateMach.RemoveAnyStateTransition(asTrans);
+                            animStateMach.RemoveState(removable);
+
+                            RemoveFromAnimationListOfCharacter(animationRemove);
+                        }
                     }
                 }
             }
