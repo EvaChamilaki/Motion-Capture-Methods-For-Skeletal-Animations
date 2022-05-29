@@ -17,14 +17,20 @@ public class AnimatorControllerSingleton : MonoBehaviour
 
     [HideInInspector]
     public bool showBeforeThisAnim = false, showBeforeThisAnimSubSM = false;
-    
+
     [HideInInspector]
     public bool showAfterThisAnim = false, showAfterThisAnimSubSM = false;
 
+    [HideInInspector]
+    public List<AnimationClip> animClips = new List<AnimationClip>();
 
     public void Start()
     {
         animator = GetComponent<Animator>();
+        if (Character.GetComponent<Animation>() == null)
+        {
+            Character.AddComponent<Animation>();
+        }
     }
 
     public static AnimatorControllerSingleton Instance
