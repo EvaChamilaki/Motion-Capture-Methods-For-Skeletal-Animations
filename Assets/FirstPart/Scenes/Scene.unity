@@ -1137,7 +1137,7 @@ Animator:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 664919612}
   m_Enabled: 1
-  m_Avatar: {fileID: 0}
+  m_Avatar: {fileID: 9000000, guid: ed105c278579b9143b04638d054893f9, type: 3}
   m_Controller: {fileID: 9100000, guid: 3b121426f2a493644b994698b3695731, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
@@ -1161,7 +1161,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   animator: {fileID: 664919614}
   Animator_Controller: {fileID: 9100000, guid: 3b121426f2a493644b994698b3695731, type: 2}
+  Character: {fileID: 1874509512}
   showAnims: 1
+  showSubStateMach: 0
+  showAnimContr: 0
+  showBeforeThisAnim: 0
+  showBeforeThisAnimSubSM: 0
+  showAfterThisAnim: 0
+  showAfterThisAnimSubSM: 0
+  animClips: []
 --- !u!1 &709004244
 GameObject:
   m_ObjectHideFlags: 0
@@ -6647,18 +6655,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: ed105c278579b9143b04638d054893f9, type: 3}
   m_PrefabInstance: {fileID: 1745245284}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1874509515
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1874509512}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 720111b753d896c4cab3c0f982030c95, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &1882652600 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4114935976081480, guid: 5016dee2f2df1774e9c4ea33160fca26, type: 3}
