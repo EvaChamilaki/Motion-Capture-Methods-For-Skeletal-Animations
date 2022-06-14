@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -9,11 +10,11 @@ using UnityEngine;
 public class AnimationControllerEditor : Editor
 {
     int selected = 0;
-    string[] options = new string[] { };
 
     private AnimationClip animationAdd, addAnimationAfterThisOne, addAnimationBeforeThisOne
         , animationRemove, addDefaultState, animationAddToStateMach, addAnimationAfterThisOneSubSM, addAnimationBeforeThisOneSubSM;
     private AnimatorStateMachine animStateMach, stateMachine;
+    string[] options = new string[] { };
 
     public enum PlayModeState
     {
@@ -27,18 +28,9 @@ public class AnimationControllerEditor : Editor
     {
         base.OnInspectorGUI();
 
-        //EditorApplication.playModeStateChanged = HandleOnPlayModeChanged;
-        List<string> list = new List<string>(options.ToList());
-
-
         AnimatorControllerSingleton acEd = (AnimatorControllerSingleton)target;
 
-        //void HandleOnPlayModeChanged()
-        //{
-        //    // This method is run whenever the playmode state is changed.
-
-        //}
-
+        List<string> list = new List<string>(options.ToList());
 
 
         //=========================================EXISTING ANIMATIONS===============================================
@@ -53,10 +45,7 @@ public class AnimationControllerEditor : Editor
         if (acEd.showAnims)
         {
             int size = acEd.animator.runtimeAnimatorController.animationClips.Length;
-            //if (animStateMach.stateMachines[0].stateMachine != null)
-            //{
-            //    size += animStateMach.stateMachines[0].stateMachine.states.Length;
-            //}
+
             GUILayout.BeginHorizontal();
             {
                 GUILayout.Label("Size:          ");
@@ -79,18 +68,6 @@ public class AnimationControllerEditor : Editor
 
                 list.Add(ac.name);
             }
-
-            //foreach (var state in animStateMach.stateMachines[0].stateMachine.states)
-            //{
-            //    GUILayout.BeginHorizontal();
-            //    {
-            //        GUILayout.Label("Animation " + i + ":");
-            //        EditorGUILayout.SelectableLabel(state.state.name, EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
-            //    }
-            //    GUILayout.EndHorizontal();
-
-            //    i++;
-            //}
         }
 
 
@@ -99,30 +76,6 @@ public class AnimationControllerEditor : Editor
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
         acEd.showSubStateMach = EditorGUILayout.Foldout(acEd.showSubStateMach, "Sub State Machine", true);
-
-        if (GUILayout.Button("TEst"))
-        {
-            //foreach (var e in list)
-            //{
-            //    Debug.Log($"lest: {e}");
-
-            //}
-
-            //foreach (var i in animStateMach.stateMachines[0].stateMachine.states)
-            //{
-            //    Debug.Log($"in stmach: {i.state.name}");
-            //}
-
-            foreach (var i in acEd.animClips)
-            {
-                Debug.Log($"list elem: {i}");
-            }
-            //AnimationClip clip = FindAnimation(acEd.animator, "Bored");
-            //Debug.Log(clip);
-            //SequenceOfAnimations(controller, "StandingScrollingPhone");
-            //SequenceOfAnimationsSubSM(animStateMach, "Bored", acEd.Character.GetComponent<Animation>());
-        }
-
 
         if (acEd.showSubStateMach)
         {
@@ -352,16 +305,19 @@ public class AnimationControllerEditor : Editor
         //==========================================REMOVE ANIMATIONS===============================================
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-        animationRemove = EditorGUILayout.ObjectField(animationRemove, typeof(AnimationClip), true) as AnimationClip;
-
         EditorGUI.BeginChangeCheck();
 
         options = list.ToArray();
+
+        //this.selected = EditorGUILayout.Popup("Play This Animation", selected, options);
+
+
         this.selected = EditorGUILayout.Popup("Remove Animation", selected, options);
 
         if (EditorGUI.EndChangeCheck())
-        {
+        {   
             Debug.Log(options[selected]);
+            acEd.selected_option = options[selected];
         }
 
         GUILayout.Space(10);

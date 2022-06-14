@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -8,14 +9,13 @@ using UnityEngine;
 public class AnimatorControllerSingleton : MonoBehaviour
 {
     private static AnimatorControllerSingleton _instance;
-    private bool idlePlays = true;
     public Animator animator;
     public AnimatorController Animator_Controller;
     private AnimatorStateMachine animStateMach;
     public GameObject Character;
 
     [HideInInspector]
-    public bool showAnims = false, showSubStateMach = false, showAnimContr = false;
+    public bool showAnims = false, showSubStateMach = false, showAnimContr = false, idlePlays = true;
 
     [HideInInspector]
     public bool showBeforeThisAnim = false, showBeforeThisAnimSubSM = false;
@@ -24,27 +24,21 @@ public class AnimatorControllerSingleton : MonoBehaviour
     public bool showAfterThisAnim = false, showAfterThisAnimSubSM = false;
 
     [HideInInspector]
+    public string selected_option;
+
+    [HideInInspector]
     public List<AnimationClip> animClips = new List<AnimationClip>();
 
     IEnumerator Start()
     {
-        AnimationClip prevChosen = null;
         animStateMach = Animator_Controller.layers[0].stateMachine;
         animator = GetComponent<Animator>();
-
-        AnimatorState default_state = animStateMach.defaultState;
-        AnimationClip default_clip = FindAnimation(Animator_Controller, default_state.name);
+        AnimationClip prevChosen = null;
 
         ChildAnimatorState[] subStateMachStates = animStateMach.stateMachines[0].stateMachine.states;
 
-        if (Character.GetComponent<Animation>() == null)
+        while (idlePlays)
         {
-            Character.AddComponent<Animation>();
-        }
-
-        while (true)
-        {
-
             ChildAnimatorState chosenState = subStateMachStates[Random.Range(0, subStateMachStates.Length)];
 
             AnimationClip chosen = FindAnimationSubSM(animStateMach, chosenState.state.name);
@@ -64,7 +58,6 @@ public class AnimatorControllerSingleton : MonoBehaviour
             yield return new WaitForSeconds(DurationOfAnimsSubSM(animStateMach, chosen.name));
 
             prevChosen = chosen;
-
         }
     }
 
@@ -141,17 +134,13 @@ public class AnimatorControllerSingleton : MonoBehaviour
         return null;
     }
 
-
     IEnumerator SequenceOfAnimationsSubSM(AnimatorStateMachine animStMach, string animName)
     {
         AnimationClip animcl = FindAnimationSubSM(animStMach, animName);
         bool hasAnother = true;
 
-        Debug.Log("arxise " + animcl.name);
         Character.GetComponent<Animator>().Play(animName);
-
         yield return new WaitForSeconds(animcl.length);
-        Debug.Log("teleiwse " + animcl.name);
 
 
         while (hasAnother)
@@ -159,16 +148,14 @@ public class AnimatorControllerSingleton : MonoBehaviour
             AnimatorState animState = FindStateSubSM(animStMach, animName);
             AnimatorState state = FindNextStateSubSM(animStMach, animName);
 
-            if (!state || animState.transitions[0].isExit) { Debug.Log("exit"); hasAnother = false; }
+            if (!state || animState.transitions[0].isExit) { hasAnother = false; }
             else
             {
                 AnimationClip anim = FindAnimationSubSM(animStMach, state.name);
 
                 Character.GetComponent<Animator>().Play(anim.name);
-                Debug.Log("arxise" + anim.name);
 
                 yield return new WaitForSeconds(anim.length);
-                Debug.Log("teleiwse2 " + anim.name);
 
                 animName = state.name;
             }
@@ -176,9 +163,8 @@ public class AnimatorControllerSingleton : MonoBehaviour
 
         AnimatorState default_state = animStateMach.defaultState;
         AnimationClip default_clip = FindAnimation(Animator_Controller, default_state.name);
-        Debug.Log("edw?");
+
         Character.GetComponent<Animator>().Play(default_state.name);
-        Debug.Log("arxise" + default_state.name);
 
         yield return new WaitForSeconds(default_clip.length);
     }
