@@ -4,6 +4,8 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+using System.Threading.Tasks;
+using System.Threading;
 
 [ExecuteInEditMode]
 public class AnimatorControllerSingleton : MonoBehaviour
@@ -12,10 +14,12 @@ public class AnimatorControllerSingleton : MonoBehaviour
     public Animator animator;
     public AnimatorController Animator_Controller;
     private AnimatorStateMachine animStateMach;
-    public GameObject Character;
 
     [HideInInspector]
-    public bool showAnims = false, showSubStateMach = false, showAnimContr = false, idlePlays = true;
+    public List<GameObject> Characters;
+
+    [HideInInspector]
+    public bool showChars = false, showAnims = false, showSubStateMach = false, showAnimContr = false, idlePlays = true;
 
     [HideInInspector]
     public bool showBeforeThisAnim = false, showBeforeThisAnimSubSM = false;
@@ -29,13 +33,25 @@ public class AnimatorControllerSingleton : MonoBehaviour
     [HideInInspector]
     public List<AnimationClip> animClips = new List<AnimationClip>();
 
-    IEnumerator Start()
+    public void Start()
     {
         animStateMach = Animator_Controller.layers[0].stateMachine;
         animator = GetComponent<Animator>();
-        AnimationClip prevChosen = null;
 
+        foreach(var ch in Characters)
+        {
+            StartCoroutine(CharacterThread(ch));
+        }
+    }
+
+    IEnumerator CharacterThread(GameObject character)
+    {
+        int characterId = 0;
+        bool idlePlays = true;
+
+        Debug.Log("A thread started processing character " + characterId);
         ChildAnimatorState[] subStateMachStates = animStateMach.stateMachines[0].stateMachine.states;
+        AnimationClip prevChosen = null;
 
         while (idlePlays)
         {
@@ -53,13 +69,17 @@ public class AnimatorControllerSingleton : MonoBehaviour
                     chosen = FindAnimationSubSM(animStateMach, chosenState.state.name);
                 }
             }
-            StartCoroutine(SequenceOfAnimationsSubSM(animStateMach, chosen.name));
+            StartCoroutine(SequenceOfAnimationsSubSM(animStateMach, chosen.name, character));
             Debug.Log($"dur: {DurationOfAnimsSubSM(animStateMach, chosen.name)}");
             yield return new WaitForSeconds(DurationOfAnimsSubSM(animStateMach, chosen.name));
 
             prevChosen = chosen;
         }
     }
+
+
+
+
 
     public static AnimatorControllerSingleton Instance
     {
@@ -134,12 +154,19 @@ public class AnimatorControllerSingleton : MonoBehaviour
         return null;
     }
 
-    IEnumerator SequenceOfAnimationsSubSM(AnimatorStateMachine animStMach, string animName)
+    IEnumerator SequenceOfAnimationsSubSM(AnimatorStateMachine animStMach, string animName, GameObject character)
     {
+        AnimatorState default_state = animStateMach.defaultState;
+        AnimationClip default_clip = FindAnimation(Animator_Controller, default_state.name);
+
+        character.GetComponent<Animator>().Play(default_state.name);
+
+        yield return new WaitForSeconds(default_clip.length);
+
         AnimationClip animcl = FindAnimationSubSM(animStMach, animName);
         bool hasAnother = true;
 
-        Character.GetComponent<Animator>().Play(animName);
+        character.GetComponent<Animator>().Play(animName);
         yield return new WaitForSeconds(animcl.length);
 
 
@@ -153,7 +180,7 @@ public class AnimatorControllerSingleton : MonoBehaviour
             {
                 AnimationClip anim = FindAnimationSubSM(animStMach, state.name);
 
-                Character.GetComponent<Animator>().Play(anim.name);
+                character.GetComponent<Animator>().Play(anim.name);
 
                 yield return new WaitForSeconds(anim.length);
 
@@ -161,19 +188,17 @@ public class AnimatorControllerSingleton : MonoBehaviour
             }
         }
 
-        AnimatorState default_state = animStateMach.defaultState;
-        AnimationClip default_clip = FindAnimation(Animator_Controller, default_state.name);
-
-        Character.GetComponent<Animator>().Play(default_state.name);
+        character.GetComponent<Animator>().Play(default_state.name);
 
         yield return new WaitForSeconds(default_clip.length);
     }
 
-    public IEnumerator PlayAnimationFromAnimatorController(string s)
+    public IEnumerator PlayAnimationFromAnimatorController(string s, GameObject character)
     {
         idlePlays = false;
 
-        Character.GetComponent<Animator>().Play(s);
+        character.GetComponent<Animator>().Play(s);
+
         yield return new WaitForSeconds(FindAnimation(Animator_Controller, s).length);
 
         idlePlays = true;

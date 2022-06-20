@@ -12,17 +12,10 @@ public class AnimationControllerEditor : Editor
     int selected = 0;
 
     private AnimationClip animationAdd, addAnimationAfterThisOne, addAnimationBeforeThisOne
-        , animationRemove, addDefaultState, animationAddToStateMach, addAnimationAfterThisOneSubSM, addAnimationBeforeThisOneSubSM;
+        , addDefaultState, animationAddToStateMach, addAnimationAfterThisOneSubSM, addAnimationBeforeThisOneSubSM;
+    private GameObject addCharacter;
     private AnimatorStateMachine animStateMach, stateMachine;
     string[] options = new string[] { };
-
-    public enum PlayModeState
-    {
-        Playing,
-        Paused
-    }
-
-    //[InitializeOnLoad]
 
     public override void OnInspectorGUI()
     {
@@ -31,12 +24,45 @@ public class AnimationControllerEditor : Editor
         AnimatorControllerSingleton acEd = (AnimatorControllerSingleton)target;
 
         List<string> list = new List<string>(options.ToList());
+        AnimatorController controller = acEd.Animator_Controller;
 
+        //==============================================CHARACTERS===================================================
+
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+        acEd.showChars = EditorGUILayout.Foldout(acEd.showChars, "Characters", true);
+
+        int c = 0;
+        if (acEd.showChars)
+        {
+            foreach (GameObject character in acEd.Characters)
+            {
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label("Character " + c + ":");
+                    EditorGUILayout.SelectableLabel(character.name, EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                }
+                GUILayout.EndHorizontal();
+
+                c++;
+            }
+
+            GUILayout.Space(10);
+
+            GUILayout.Label("Add Character:");
+
+            addCharacter = EditorGUILayout.ObjectField(addCharacter, typeof(GameObject), true) as GameObject;
+
+            GUILayout.Space(10);
+
+            if (GUILayout.Button("Apply"))
+            {
+                acEd.Characters.Add(addCharacter);
+            }
+        }
 
         //=========================================EXISTING ANIMATIONS===============================================
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-        AnimatorController controller = acEd.Animator_Controller;
 
         animStateMach = controller.layers[0].stateMachine;
 
@@ -315,7 +341,7 @@ public class AnimationControllerEditor : Editor
         this.selected = EditorGUILayout.Popup("Remove Animation", selected, options);
 
         if (EditorGUI.EndChangeCheck())
-        {   
+        {
             Debug.Log(options[selected]);
             acEd.selected_option = options[selected];
         }
