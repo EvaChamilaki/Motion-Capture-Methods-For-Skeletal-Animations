@@ -169,6 +169,16 @@ public class AnimatorControllerSingleton : MonoBehaviour
         yield return new WaitForSeconds(default_clip.length);
     }
 
+    public IEnumerator PlayAnimationFromAnimatorController(string s)
+    {
+        idlePlays = false;
+
+        Character.GetComponent<Animator>().Play(s);
+        yield return new WaitForSeconds(FindAnimation(Animator_Controller, s).length);
+
+        idlePlays = true;
+    }
+
     public float DurationOfAnimsSubSM(AnimatorStateMachine animStMach, string animName)
     {
         AnimationClip animcl = FindAnimationSubSM(animStMach, animName);
