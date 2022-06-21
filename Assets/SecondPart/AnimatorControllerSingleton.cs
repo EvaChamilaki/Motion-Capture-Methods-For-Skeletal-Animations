@@ -19,7 +19,8 @@ public class AnimatorControllerSingleton : MonoBehaviour
     public List<GameObject> Characters;
 
     [HideInInspector]
-    public bool showChars = false, showAnims = false, showSubStateMach = false, showAnimContr = false, idlePlays = true;
+    public bool showChars = false, showAnims = false, showSubStateMach = false, showAnimContr = false
+        , idlePlays = true;
 
     [HideInInspector]
     public bool showBeforeThisAnim = false, showBeforeThisAnimSubSM = false;
@@ -46,10 +47,8 @@ public class AnimatorControllerSingleton : MonoBehaviour
 
     IEnumerator CharacterThread(GameObject character)
     {
-        int characterId = 0;
         bool idlePlays = true;
 
-        Debug.Log("A thread started processing character " + characterId);
         ChildAnimatorState[] subStateMachStates = animStateMach.stateMachines[0].stateMachine.states;
         AnimationClip prevChosen = null;
 
@@ -58,19 +57,17 @@ public class AnimatorControllerSingleton : MonoBehaviour
             ChildAnimatorState chosenState = subStateMachStates[Random.Range(0, subStateMachStates.Length)];
 
             AnimationClip chosen = FindAnimationSubSM(animStateMach, chosenState.state.name);
-            Debug.Log($"the chosen is: {chosen}");
 
             if (prevChosen != null)
             {
                 if (prevChosen.name == chosen.name)
                 {
-                    Debug.Log("here again");
                     chosenState = subStateMachStates[Random.Range(0, subStateMachStates.Length)];
                     chosen = FindAnimationSubSM(animStateMach, chosenState.state.name);
                 }
             }
+
             StartCoroutine(SequenceOfAnimationsSubSM(animStateMach, chosen.name, character));
-            Debug.Log($"dur: {DurationOfAnimsSubSM(animStateMach, chosen.name)}");
             yield return new WaitForSeconds(DurationOfAnimsSubSM(animStateMach, chosen.name));
 
             prevChosen = chosen;

@@ -165,7 +165,6 @@ public class AnimationControllerEditor : Editor
                     else if (addAnimationBeforeThisOneSubSM == null && addAnimationAfterThisOneSubSM == null)
                     {
                         SimpleAdditionSubSM(stateMachine);
-                        acEd.animClips.Add(animationAddToStateMach);
                     }
                     else if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM == null)
                     {
@@ -193,7 +192,6 @@ public class AnimationControllerEditor : Editor
                             {
                                 SimpleBeforeAdditionSubSM(stateMachine);
                             }
-                            acEd.animClips.Add(animationAddToStateMach);
                         }
                     }
                     else if (addAnimationBeforeThisOneSubSM == null && addAnimationAfterThisOneSubSM != null)
@@ -216,13 +214,11 @@ public class AnimationControllerEditor : Editor
                             {
                                 SimpleAfterAdditionSubSM(stateMachine);
                             }
-                            acEd.animClips.Add(animationAddToStateMach);
                         }
                     }
                     else if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM != null)
                     {
                         BetweenTwoAnimStatesAddStateSubSM(stateMachine);
-                        acEd.animClips.Add(animationAddToStateMach);
                     }
                 }
             }
@@ -569,9 +565,13 @@ public class AnimationControllerEditor : Editor
     public void SimpleAddition(AnimatorController animCont, AnimationClip m)
     {
         AnimatorState default_state = animStateMach.defaultState;
-        animCont.AddMotion(m).AddTransition(default_state);
 
+        animStateMach.AddState(m.name).motion = animationAdd;
         AnimatorState add = FindState(animCont, animationAdd.name);
+
+        add.motion = animationAdd;
+        add.AddTransition(default_state);
+
         animStateMach.AddAnyStateTransition(add);
     }
 
@@ -588,9 +588,13 @@ public class AnimationControllerEditor : Editor
             AnimatorState afterThisState = FindState(animCont, addAnimationAfterThisOne.name);
 
             AnimationClip m = new AnimationClip { name = animationAdd.name };
-            animCont.AddMotion(m).AddTransition(nextState);
 
+            animStateMach.AddState(m.name).motion = animationAdd;
             AnimatorState add = FindState(animCont, animationAdd.name);
+
+            add.motion = animationAdd;
+            add.AddTransition(nextState);
+
             afterThisState.AddTransition(add);
 
             foreach (var trans in afterThisState.transitions)
@@ -619,9 +623,12 @@ public class AnimationControllerEditor : Editor
             AnimatorState beforeThisState = FindState(animCont, addAnimationBeforeThisOne.name);
 
             AnimationClip m = new AnimationClip { name = animationAdd.name };
-            animCont.AddMotion(m).AddTransition(beforeThisState);
 
+            animStateMach.AddState(m.name).motion = animationAdd;
             AnimatorState add = FindState(animCont, animationAdd.name);
+
+            add.motion = animationAdd;
+            add.AddTransition(beforeThisState);
             previousState.AddTransition(add);
 
             foreach (var trans in previousState.transitions)
@@ -641,9 +648,11 @@ public class AnimationControllerEditor : Editor
     {
         AnimationClip m = new AnimationClip { name = animationAdd.name };
 
-        animCont.AddMotion(m).AddTransition(default_state);
-
+        animStateMach.AddState(m.name).motion = animationAdd;
         AnimatorState add = FindState(animCont, animationAdd.name);
+
+        add.motion = animationAdd;
+        add.AddTransition(default_state);
         animAfter.AddTransition(add);
 
         foreach (var trans in animAfter.transitions)
@@ -684,8 +693,13 @@ public class AnimationControllerEditor : Editor
             else
             {
                 AnimationClip m = new AnimationClip { name = animationAdd.name };
-                animCont.AddMotion(m).AddTransition(animPrev);
 
+                animStateMach.AddState(m.name).motion = animationAdd;
+                AnimatorState add = FindState(animCont, animationAdd.name);
+
+                add.motion = animationAdd;
+                add.AddTransition(animPrev);
+                animAfter.AddTransition(add);
 
                 foreach (var trans in animAfter.transitions)
                 {
@@ -697,10 +711,6 @@ public class AnimationControllerEditor : Editor
                         }
                     }
                 }
-
-                AnimatorState add = FindState(animCont, animationAdd.name);
-
-                animAfter.AddTransition(add);
             }
         }
     }
@@ -710,9 +720,12 @@ public class AnimationControllerEditor : Editor
         AnimationClip m = new AnimationClip { name = animationAdd.name };
 
         AnimatorState animationStateAddBeforeThis = FindState(animCont, addAnimationBeforeThisOne.name);
-        animCont.AddMotion(m).AddTransition(animationStateAddBeforeThis);
 
+        animStateMach.AddState(m.name).motion = animationAdd;
         AnimatorState add = FindState(animCont, animationAdd.name);
+
+        add.motion = animationAdd;
+        add.AddTransition(animationStateAddBeforeThis);
         animStateMach.AddAnyStateTransition(add);
 
         animStateMach.RemoveAnyStateTransition(animStateMach.anyStateTransitions[i]);
@@ -728,8 +741,6 @@ public class AnimationControllerEditor : Editor
 
         AnimatorState newStateInSubSM = FindStateSubSM(stateMachine, animationAddToStateMach.name);
         stateMachine.AddEntryTransition(newStateInSubSM);
-
-        //animationAddToStateMach.legacy = true;
 
         newStateInSubSM.motion = animationAddToStateMach;
         newStateInSubSM.AddExitTransition();
