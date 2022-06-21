@@ -11,16 +11,19 @@ using System.Threading;
 public class AnimatorControllerSingleton : MonoBehaviour
 {
     private static AnimatorControllerSingleton _instance;
-    public Animator animator;
     public AnimatorController Animator_Controller;
+
     private AnimatorStateMachine animStateMach;
+
+    [HideInInspector]
+    public Animator animator;
 
     [HideInInspector]
     public List<GameObject> Characters;
 
     [HideInInspector]
     public bool showChars = false, showAnims = false, showSubStateMach = false, showAnimContr = false
-        , idlePlays = true;
+        , showDefault = false, idlePlays = true;
 
     [HideInInspector]
     public bool showBeforeThisAnim = false, showBeforeThisAnimSubSM = false;
@@ -73,9 +76,6 @@ public class AnimatorControllerSingleton : MonoBehaviour
             prevChosen = chosen;
         }
     }
-
-
-
 
 
     public static AnimatorControllerSingleton Instance
@@ -190,15 +190,15 @@ public class AnimatorControllerSingleton : MonoBehaviour
         yield return new WaitForSeconds(default_clip.length);
     }
 
-    public IEnumerator PlayAnimationFromAnimatorController(string s, GameObject character)
+    public void PlayAnimationFromAnimatorController(string s, GameObject character)
     {
         idlePlays = false;
 
         character.GetComponent<Animator>().Play(s);
-
-        yield return new WaitForSeconds(FindAnimation(Animator_Controller, s).length);
+        StartCoroutine(SequenceOfAnimationsSubSM(animStateMach, s, character));
 
         idlePlays = true;
+        StartCoroutine(CharacterThread(character));
     }
 
     public float DurationOfAnimsSubSM(AnimatorStateMachine animStMach, string animName)

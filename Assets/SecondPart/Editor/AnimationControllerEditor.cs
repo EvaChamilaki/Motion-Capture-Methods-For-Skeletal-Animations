@@ -12,14 +12,18 @@ public class AnimationControllerEditor : Editor
     int selected = 0;
 
     private AnimationClip animationAdd, addAnimationAfterThisOne, addAnimationBeforeThisOne
-        , addDefaultState, animationAddToStateMach, addAnimationAfterThisOneSubSM, addAnimationBeforeThisOneSubSM;
-    private GameObject addCharacter;
+        , addDefaultState, animationAddToStateMach, addAnimationAfterThisOneSubSM, addAnimationBeforeThisOneSubSM
+        , replaceDefaultState, replaceThisAnimation, withThisAnimation;
+    private GameObject addCharacter, removeCharacter;
     private AnimatorStateMachine animStateMach, stateMachine;
     string[] options = new string[] { };
 
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
+
+        GUIStyle style = new GUIStyle();
+        style.richText = true;
 
         AnimatorControllerSingleton acEd = (AnimatorControllerSingleton)target;
 
@@ -48,7 +52,7 @@ public class AnimationControllerEditor : Editor
 
             GUILayout.Space(10);
 
-            GUILayout.Label("Add Character:");
+            GUILayout.Label("<color=#ffffffff> <b>Add</b> Character:</color>", style);
 
             addCharacter = EditorGUILayout.ObjectField(addCharacter, typeof(GameObject), true) as GameObject;
 
@@ -57,6 +61,19 @@ public class AnimationControllerEditor : Editor
             if (GUILayout.Button("Apply"))
             {
                 acEd.Characters.Add(addCharacter);
+            }
+
+            GUILayout.Space(10);
+
+            GUILayout.Label("<color=#ffffffff><b>Remove</b> Character:</color>", style);
+
+            removeCharacter = EditorGUILayout.ObjectField(removeCharacter, typeof(GameObject), true) as GameObject;
+
+            GUILayout.Space(10);
+
+            if (GUILayout.Button("Apply"))
+            {
+                acEd.Characters.Remove(removeCharacter);
             }
         }
 
@@ -68,9 +85,19 @@ public class AnimationControllerEditor : Editor
 
         acEd.showAnims = EditorGUILayout.Foldout(acEd.showAnims, "Existing Animations", true);
 
+        int l = 0;
+
+        foreach (AnimationClip ac in acEd.animator.runtimeAnimatorController.animationClips)
+        {
+            list.Add(ac.name);
+
+            l++;
+        }
+
         if (acEd.showAnims)
         {
             int size = acEd.animator.runtimeAnimatorController.animationClips.Length;
+            GUILayout.Space(10);
 
             GUILayout.BeginHorizontal();
             {
@@ -91,8 +118,6 @@ public class AnimationControllerEditor : Editor
                 GUILayout.EndHorizontal();
 
                 i++;
-
-                list.Add(ac.name);
             }
         }
 
@@ -101,10 +126,12 @@ public class AnimationControllerEditor : Editor
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
-        acEd.showSubStateMach = EditorGUILayout.Foldout(acEd.showSubStateMach, "Sub State Machine", true);
+        acEd.showDefault = EditorGUILayout.Foldout(acEd.showDefault, "Default animation", true);
 
-        if (acEd.showSubStateMach)
+        if (acEd.showDefault)
         {
+            GUILayout.Space(10);
+
             GUILayout.Label("Set as Default Animation:");
 
             addDefaultState = EditorGUILayout.ObjectField(addDefaultState, typeof(AnimationClip), true) as AnimationClip;
@@ -114,32 +141,53 @@ public class AnimationControllerEditor : Editor
             if (GUILayout.Button("Apply"))
             {
                 AnimationClip m = new AnimationClip { name = addDefaultState.name };
-                controller.AddMotion(m);
-                list.Add(addDefaultState.name);
 
+                animStateMach.AddState(m.name).motion = addDefaultState;
                 AnimatorState default_state = FindState(controller, addDefaultState.name);
+
+                default_state.motion = addDefaultState;
+                list.Add(addDefaultState.name);
                 animStateMach.defaultState = default_state;
 
                 AnimatorStateMachine ast = animStateMach.AddStateMachine("IdleStates");
                 animStateMach.AddStateMachineTransition(ast, default_state);
 
-                foreach (var s in animStateMach.stateMachines)
-                {
-                    Debug.Log(s.stateMachine.name);
-                }
                 default_state.AddTransition(ast);
             }
 
-            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            GUILayout.Space(10);
 
+            GUILayout.Label("Replace Default Animation with this Animation:");
+
+            replaceDefaultState = EditorGUILayout.ObjectField(replaceDefaultState, typeof(AnimationClip), true) as AnimationClip;
+
+            GUILayout.Space(10);
+
+            if (GUILayout.Button("Apply"))
+            {
+                AnimatorState default_state = animStateMach.defaultState;
+
+                default_state.motion = replaceDefaultState;
+                default_state.name = replaceDefaultState.name;
+            }
+        }
+
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
+        acEd.showSubStateMach = EditorGUILayout.Foldout(acEd.showSubStateMach, "Sub State Machine (random animations)", true);
+
+        if (acEd.showSubStateMach)
+        {
             if (animStateMach.stateMachines.Length != 0)
             {
                 stateMachine = animStateMach.stateMachines[0].stateMachine;
+                GUILayout.Space(10);
 
 
-                GUILayout.Label("Add this Animation to the " + animStateMach.stateMachines[0].stateMachine.name + ":");
+                GUILayout.Label("<color=#ffffffff><b>Add</b> this Animation to the " + animStateMach.stateMachines[0].stateMachine.name + ":</color>", style);
 
                 animationAddToStateMach = EditorGUILayout.ObjectField(animationAddToStateMach, typeof(AnimationClip), true) as AnimationClip;
+                GUILayout.Space(10);
 
                 acEd.showBeforeThisAnimSubSM = EditorGUILayout.Foldout(acEd.showBeforeThisAnimSubSM, "Before this Animation", true);
 
@@ -233,7 +281,9 @@ public class AnimationControllerEditor : Editor
 
         if (acEd.showAnimContr)
         {
-            GUILayout.Label("Add this Animation:");
+            GUILayout.Space(10);
+
+            GUILayout.Label("<color=#ffffffff><b>Add</b> this Animation:</color>", style);
 
             animationAdd = EditorGUILayout.ObjectField(animationAdd, typeof(AnimationClip), true) as AnimationClip;
 
@@ -327,6 +377,45 @@ public class AnimationControllerEditor : Editor
         //==========================================REMOVE ANIMATIONS===============================================
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
+        GUILayout.Label("<color=#ffffffff><b>Replace</b> this animation:</color>", style);
+        replaceThisAnimation = EditorGUILayout.ObjectField(replaceThisAnimation, typeof(AnimationClip), true) as AnimationClip;
+
+        GUILayout.Space(10);
+
+        GUILayout.Label("<color=#ffffffff>with <b>this</b> animation:</color>", style);
+        withThisAnimation = EditorGUILayout.ObjectField(withThisAnimation, typeof(AnimationClip), true) as AnimationClip;
+
+        GUILayout.Space(10);
+
+        if (GUILayout.Button("Replace"))
+        {
+            AnimatorState stateInBase = FindState(controller, replaceThisAnimation.name);
+            if (stateInBase == null)
+            {
+                stateMachine = animStateMach.stateMachines[0].stateMachine;
+
+                AnimatorState stateInSubSM = FindStateSubSM(stateMachine, replaceThisAnimation.name);
+
+                if (stateInSubSM == null)
+                {
+                    Debug.LogError("The animation you're trying to replace doesn't exist.");
+                }
+                else
+                {
+                    stateInSubSM.motion = withThisAnimation;
+                    stateInSubSM.name = withThisAnimation.name;
+                }
+            }
+            else {
+                stateInBase.motion = withThisAnimation;
+                stateInBase.name = withThisAnimation.name;
+            }
+        }
+
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
+
         EditorGUI.BeginChangeCheck();
 
         options = list.ToArray();
