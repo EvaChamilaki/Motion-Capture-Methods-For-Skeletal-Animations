@@ -132,7 +132,7 @@ public class AnimationControllerEditor : Editor
         {
             GUILayout.Space(10);
 
-            GUILayout.Label("Set as Default Animation:");
+            GUILayout.Label("<color=#ffffffff>Set as <b>Default</b> Animation:</color>", style);
 
             addDefaultState = EditorGUILayout.ObjectField(addDefaultState, typeof(AnimationClip), true) as AnimationClip;
 
@@ -157,7 +157,7 @@ public class AnimationControllerEditor : Editor
 
             GUILayout.Space(10);
 
-            GUILayout.Label("Replace Default Animation with this Animation:");
+            GUILayout.Label("<color=#ffffffff><b>Replace</b> Default Animation with this Animation:</color>", style);
 
             replaceDefaultState = EditorGUILayout.ObjectField(replaceDefaultState, typeof(AnimationClip), true) as AnimationClip;
 
