@@ -87,7 +87,7 @@ public class AnimationControllerEditor : Editor
 
         int l = 0;
 
-        foreach (AnimationClip ac in acEd.animator.runtimeAnimatorController.animationClips)
+        foreach (AnimationClip ac in acEd.Animator_Controller.animationClips)
         {
             list.Add(ac.name);
 
@@ -96,7 +96,7 @@ public class AnimationControllerEditor : Editor
 
         if (acEd.showAnims)
         {
-            int size = acEd.animator.runtimeAnimatorController.animationClips.Length;
+            int size = acEd.Animator_Controller.animationClips.Length;
             GUILayout.Space(10);
 
             GUILayout.BeginHorizontal();
@@ -108,7 +108,7 @@ public class AnimationControllerEditor : Editor
 
             int i = 0;
 
-            foreach (AnimationClip ac in acEd.animator.runtimeAnimatorController.animationClips)
+            foreach (AnimationClip ac in acEd.Animator_Controller.animationClips)
             {
                 GUILayout.BeginHorizontal();
                 {
@@ -438,7 +438,8 @@ public class AnimationControllerEditor : Editor
             AnimatorState removable = FindState(controller, options[selected]);
             if (removable == null)
             {
-                AnimationClip removableClip = FindAnimationSubSM(stateMachine, options[selected]);
+                stateMachine = animStateMach.stateMachines[0].stateMachine;
+
                 AnimatorState removeSt = FindStateSubSM(stateMachine, options[selected]);
                 AnimatorState beforeRemovablesubSM = FindPreviousStateSubSM(stateMachine, options[selected]);
                 AnimatorState afterRemovablesubSM = FindNextStateSubSM(stateMachine, options[selected]);
@@ -451,7 +452,6 @@ public class AnimationControllerEditor : Editor
                     stateMachine.RemoveState(removeSt);
 
                     beforeRemovablesubSM.AddExitTransition();
-                    acEd.animClips.Remove(removableClip);
                 }
                 else if (beforeRemovablesubSM != null && afterRemovablesubSM == null)
                 {
@@ -461,7 +461,6 @@ public class AnimationControllerEditor : Editor
                         {
                             stateMachine.RemoveEntryTransition(asTrans);
                             stateMachine.RemoveState(removeSt);
-                            acEd.animClips.Remove(removableClip);
                         }
                     }
                 }
@@ -469,12 +468,10 @@ public class AnimationControllerEditor : Editor
                 {
                     beforeRemovablesubSM.AddTransition(afterRemovablesubSM);
                     stateMachine.RemoveState(removeSt);
-                    acEd.animClips.Remove(removableClip);
                 }
                 else if (beforeRemovablesubSM == null && afterRemovablesubSM == null)
                 {
                     stateMachine.RemoveState(removeSt);
-                    acEd.animClips.Remove(removableClip);
                 }
                 else if (beforeRemovablesubSM == null && afterRemovablesubSM != null)
                 {
@@ -486,14 +483,12 @@ public class AnimationControllerEditor : Editor
 
                             stateMachine.RemoveEntryTransition(asTrans);
                             stateMachine.RemoveState(removeSt);
-                            acEd.animClips.Remove(removableClip);
                         }
                     }
                 }
             }
             else
             {
-                AnimationClip removableClip = FindAnimation(controller, options[selected]);
                 AnimatorState beforeRemovable = FindPreviousState(controller, options[selected]);
                 AnimatorState afterRemovable = FindNextState(controller, options[selected]);
                 AnimatorState default_state = animStateMach.defaultState;
@@ -645,7 +640,6 @@ public class AnimationControllerEditor : Editor
         Debug.LogError("Could not find a next state.");
         return null;
     }
-
 
 
     //=================================================ADD STATE FUNCTIONS(Animator)=======================================================

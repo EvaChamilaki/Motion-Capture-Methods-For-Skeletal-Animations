@@ -13,6 +13,6 @@ public class Action0 : MonoBehaviour
     }
 
     public void PlayWhenPressed() {
-        acEd.PlayAnimationFromAnimatorController(acEd.selected_option, emily);
+        StartCoroutine(acEd.PlayAnimationFromAnimatorController(acEd.selected_option, emily));
     }
 }
