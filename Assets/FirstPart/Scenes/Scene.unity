@@ -1143,7 +1143,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61c9c00aec3a62b4588fcd1b904812b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Animator_Controller: {fileID: 9100000, guid: 3b121426f2a493644b994698b3695731, type: 2}
+  Animator_Controller: {fileID: 9100000, guid: c012a59a513d142479e6765b3f24ca2d, type: 2}
   avatar: {fileID: 9000000, guid: ed105c278579b9143b04638d054893f9, type: 3}
   animator: {fileID: 0}
   Characters:
@@ -1151,15 +1151,15 @@ MonoBehaviour:
   - {fileID: 255944253}
   showChars: 1
   showAnims: 1
-  showSubStateMach: 0
-  showAnimContr: 0
+  showSubStateMach: 1
+  showAnimContr: 1
   showDefault: 1
   idlePlays: 1
   showBeforeThisAnim: 0
   showBeforeThisAnimSubSM: 0
   showAfterThisAnim: 0
   showAfterThisAnimSubSM: 0
-  selected_option: Bored
+  selected_option: AngryMix
 --- !u!1 &709004244
 GameObject:
   m_ObjectHideFlags: 0
@@ -3714,7 +3714,7 @@ PrefabInstance:
     - target: {fileID: 5866666021909216657, guid: ed105c278579b9143b04638d054893f9, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: 3b121426f2a493644b994698b3695731, type: 2}
+      objectReference: {fileID: 9100000, guid: c012a59a513d142479e6765b3f24ca2d, type: 2}
     - target: {fileID: 5866666021909216657, guid: ed105c278579b9143b04638d054893f9, type: 3}
       propertyPath: m_WarningMessage
       value: 
@@ -5653,7 +5653,7 @@ PrefabInstance:
     - target: {fileID: 5866666021909216657, guid: ed105c278579b9143b04638d054893f9, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: 3b121426f2a493644b994698b3695731, type: 2}
+      objectReference: {fileID: 9100000, guid: c012a59a513d142479e6765b3f24ca2d, type: 2}
     - target: {fileID: 5866666021909216657, guid: ed105c278579b9143b04638d054893f9, type: 3}
       propertyPath: m_WarningMessage
       value: 

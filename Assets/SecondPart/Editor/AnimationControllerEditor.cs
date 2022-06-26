@@ -189,6 +189,8 @@ public class AnimationControllerEditor : Editor
                 animationAddToStateMach = EditorGUILayout.ObjectField(animationAddToStateMach, typeof(AnimationClip), true) as AnimationClip;
                 GUILayout.Space(10);
 
+                EditorGUI.indentLevel++;
+
                 acEd.showBeforeThisAnimSubSM = EditorGUILayout.Foldout(acEd.showBeforeThisAnimSubSM, "Before this Animation", true);
 
                 if (acEd.showBeforeThisAnimSubSM)
@@ -202,6 +204,8 @@ public class AnimationControllerEditor : Editor
                 {
                     addAnimationAfterThisOneSubSM = EditorGUILayout.ObjectField(addAnimationAfterThisOneSubSM, typeof(AnimationClip), true) as AnimationClip;
                 }
+
+                EditorGUI.indentLevel--;
 
                 GUILayout.Space(10);
                 if (GUILayout.Button("Apply"))
@@ -289,6 +293,8 @@ public class AnimationControllerEditor : Editor
 
             GUILayout.Space(10);
 
+            EditorGUI.indentLevel++;
+
             acEd.showBeforeThisAnim = EditorGUILayout.Foldout(acEd.showBeforeThisAnim, "Before this Animation", true);
 
             if (acEd.showBeforeThisAnim)
@@ -303,6 +309,7 @@ public class AnimationControllerEditor : Editor
                 addAnimationAfterThisOne = EditorGUILayout.ObjectField(addAnimationAfterThisOne, typeof(AnimationClip), true) as AnimationClip;
             }
 
+            EditorGUI.indentLevel--;
             GUILayout.Space(10);
 
             if (GUILayout.Button("Apply"))
@@ -372,7 +379,6 @@ public class AnimationControllerEditor : Editor
                 }
             }
         }
-
 
         //==========================================REMOVE ANIMATIONS===============================================
 
