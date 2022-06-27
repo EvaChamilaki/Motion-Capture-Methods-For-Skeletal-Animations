@@ -1143,15 +1143,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61c9c00aec3a62b4588fcd1b904812b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Animator_Controller: {fileID: 9100000, guid: fa3f1800130a1f4409615ef84eeaf4ee, type: 2}
+  Animator_Controller: {fileID: 9100000, guid: c012a59a513d142479e6765b3f24ca2d, type: 2}
   avatar: {fileID: 9000000, guid: ed105c278579b9143b04638d054893f9, type: 3}
-  animator: {fileID: 0}
   Characters:
   - {fileID: 523801196}
   - {fileID: 255944253}
   showChars: 0
-  showAnims: 0
-  showSubStateMach: 0
+  showAnims: 1
+  showSubStateMach: 1
   showAnimContr: 1
   showDefault: 1
   idlePlays: 1
@@ -3714,7 +3713,7 @@ PrefabInstance:
     - target: {fileID: 5866666021909216657, guid: ed105c278579b9143b04638d054893f9, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: fa3f1800130a1f4409615ef84eeaf4ee, type: 2}
+      objectReference: {fileID: 9100000, guid: c012a59a513d142479e6765b3f24ca2d, type: 2}
     - target: {fileID: 5866666021909216657, guid: ed105c278579b9143b04638d054893f9, type: 3}
       propertyPath: m_WarningMessage
       value: 
@@ -5653,7 +5652,7 @@ PrefabInstance:
     - target: {fileID: 5866666021909216657, guid: ed105c278579b9143b04638d054893f9, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: fa3f1800130a1f4409615ef84eeaf4ee, type: 2}
+      objectReference: {fileID: 9100000, guid: c012a59a513d142479e6765b3f24ca2d, type: 2}
     - target: {fileID: 5866666021909216657, guid: ed105c278579b9143b04638d054893f9, type: 3}
       propertyPath: m_WarningMessage
       value: 
