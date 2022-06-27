@@ -426,14 +426,10 @@ public class AnimationControllerEditor : Editor
 
         options = list.ToArray();
 
-        //this.selected = EditorGUILayout.Popup("Play This Animation", selected, options);
-
-
         this.selected = EditorGUILayout.Popup("Remove Animation", selected, options);
 
         if (EditorGUI.EndChangeCheck())
         {
-            Debug.Log(options[selected]);
             acEd.selected_option = options[selected];
         }
 
@@ -1044,8 +1040,6 @@ public class AnimationControllerEditor : Editor
 
         bool hasAnother = true;
         float duration = animcl.length;
-        animation.PlayQueued(animcl.name);
-
 
         while (hasAnother)
         {

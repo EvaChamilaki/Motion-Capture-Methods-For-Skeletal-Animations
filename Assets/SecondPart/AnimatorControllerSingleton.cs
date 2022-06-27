@@ -16,9 +16,6 @@ public class AnimatorControllerSingleton : MonoBehaviour
     private AnimatorStateMachine animStateMach;
 
     [HideInInspector]
-    public Animator animator;
-
-    [HideInInspector]
     public List<GameObject> Characters;
 
     [HideInInspector]
@@ -37,7 +34,6 @@ public class AnimatorControllerSingleton : MonoBehaviour
     public void Start()
     {
         animStateMach = Animator_Controller.layers[0].stateMachine;
-        animator = GetComponent<Animator>();
 
         foreach (var ch in Characters)
         {
@@ -126,7 +122,9 @@ public class AnimatorControllerSingleton : MonoBehaviour
         AnimationClip animcl = FindAnimation(controller, animName);
         bool hasAnother = true;
 
-        character.GetComponent<Animator>().Play(animName);
+        //character.GetComponent<Animator>().Play(animName);
+        character.GetComponent<Animator>().CrossFadeInFixedTime(animName, 0.4f);
+
         yield return new WaitForSeconds(animcl.length);
 
         while (hasAnother)
@@ -134,12 +132,12 @@ public class AnimatorControllerSingleton : MonoBehaviour
             AnimatorState animState = FindState(controller, animName);
             AnimatorState state = FindNextState(controller, animName);
 
-            if (!state || animState.transitions[0].destinationState.name == default_state.name) { Debug.Log("stoooop"); hasAnother = false; }
+            if (!state || animState.transitions[0].destinationState.name == default_state.name) { hasAnother = false; }
             else
             {
                 AnimationClip anim = FindAnimation(controller, state.name);
 
-                character.GetComponent<Animator>().Play(anim.name);
+                character.GetComponent<Animator>().CrossFadeInFixedTime(anim.name, 0.4f);
 
                 yield return new WaitForSeconds(anim.length);
 
@@ -178,14 +176,15 @@ public class AnimatorControllerSingleton : MonoBehaviour
         AnimatorState default_state = animStateMach.defaultState;
         AnimationClip default_clip = FindAnimation(Animator_Controller, default_state.name);
 
-        character.GetComponent<Animator>().Play(default_state.name);
+        //character.GetComponent<Animator>().Play(default_state.name);
+        character.GetComponent<Animator>().CrossFadeInFixedTime(default_state.name, 0.4f);
 
         yield return new WaitForSeconds(default_clip.length);
 
         AnimationClip animcl = FindAnimationSubSM(animStMach, animName);
         bool hasAnother = true;
 
-        character.GetComponent<Animator>().Play(animName);
+        character.GetComponent<Animator>().CrossFadeInFixedTime(animName, 0.4f);
         yield return new WaitForSeconds(animcl.length);
 
 
@@ -199,7 +198,7 @@ public class AnimatorControllerSingleton : MonoBehaviour
             {
                 AnimationClip anim = FindAnimationSubSM(animStMach, state.name);
 
-                character.GetComponent<Animator>().Play(anim.name);
+                character.GetComponent<Animator>().CrossFadeInFixedTime(anim.name, 0.4f);
 
                 yield return new WaitForSeconds(anim.length);
 
@@ -207,9 +206,9 @@ public class AnimatorControllerSingleton : MonoBehaviour
             }
         }
 
-        character.GetComponent<Animator>().Play(default_state.name);
+        //character.GetComponent<Animator>().Play(default_state.name);
 
-        yield return new WaitForSeconds(default_clip.length);
+        //yield return new WaitForSeconds(default_clip.length);
     }
 
     public float DurationOfAnimsSubSM(AnimatorStateMachine animStMach, string animName)
@@ -223,7 +222,7 @@ public class AnimatorControllerSingleton : MonoBehaviour
             AnimatorState animState = FindStateSubSM(animStMach, animName);
             AnimatorState state = FindNextStateSubSM(animStMach, animName);
 
-            if (!state || animState.transitions[0].isExit) { Debug.Log("exit"); hasAnother = false; }
+            if (!state || animState.transitions[0].isExit) { hasAnother = false; }
             else
             {
                 AnimationClip anim = FindAnimationSubSM(animStMach, state.name);
