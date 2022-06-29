@@ -20,7 +20,7 @@ public class AnimatorControllerSingleton : MonoBehaviour
 
     [HideInInspector]
     public bool showChars = false, showAnims = false, showSubStateMach = false, showAnimContr = false
-        , showDefault = false, idlePlays = true;
+        , showDefault = false, idlePlays = true, showLayers = false;
 
     [HideInInspector]
     public bool showBeforeThisAnim = false, showBeforeThisAnimSubSM = false;
@@ -29,7 +29,7 @@ public class AnimatorControllerSingleton : MonoBehaviour
     public bool showAfterThisAnim = false, showAfterThisAnimSubSM = false;
 
     [HideInInspector]
-    public string selected_option;
+    public string selected_option, selected_option_L;
 
     public void Start()
     {

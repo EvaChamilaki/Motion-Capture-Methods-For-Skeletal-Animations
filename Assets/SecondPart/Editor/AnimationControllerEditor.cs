@@ -9,7 +9,7 @@ using UnityEngine;
 
 public class AnimationControllerEditor : Editor
 {
-    int selected = 0;
+    int selected = 0, selectedL = 0;
 
     private AnimationClip animationAdd, addAnimationAfterThisOne, addAnimationBeforeThisOne
         , addDefaultState, animationAddToStateMach, addAnimationAfterThisOneSubSM, addAnimationBeforeThisOneSubSM
@@ -17,6 +17,7 @@ public class AnimationControllerEditor : Editor
     private GameObject addCharacter, removeCharacter;
     private AnimatorStateMachine animStateMach, stateMachine;
     string[] options = new string[] { };
+    string[] optionsLayers = new string[] { };
 
     public override void OnInspectorGUI()
     {
@@ -28,6 +29,8 @@ public class AnimationControllerEditor : Editor
         AnimatorControllerSingleton acEd = (AnimatorControllerSingleton)target;
 
         List<string> list = new List<string>(options.ToList());
+        List<string> listLayer = new List<string>(optionsLayers.ToList());
+
         AnimatorController controller = acEd.Animator_Controller;
 
         //==============================================CHARACTERS===================================================
@@ -77,11 +80,94 @@ public class AnimationControllerEditor : Editor
             }
         }
 
+        //================================================LAYERS=====================================================
+
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+        acEd.showLayers = EditorGUILayout.Foldout(acEd.showLayers, "Additional Layers", true);
+
+        int la = 0;
+        if (acEd.showLayers)
+        {
+            foreach (var layer in acEd.Animator_Controller.layers)
+            {
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label("Layer " + la + ":");
+                    EditorGUILayout.SelectableLabel(layer.name, EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                }
+                GUILayout.EndHorizontal();
+
+                listLayer.Add(layer.name);
+                la++;
+            }
+
+            GUILayout.Space(10);
+
+            GUILayout.Label("<color=#ffffffff>Add another <b>Layer</b>:</color>", style);
+
+
+            GUILayout.Space(10);
+
+            if (GUILayout.Button("Press to add another layer"))
+            {
+                acEd.Animator_Controller.AddLayer("Layer " + la);
+
+                int indexOfLayer = 0;
+                foreach (var layer in acEd.Animator_Controller.layers)
+                {
+                    if (indexOfLayer > 0)
+                    {
+                        acEd.Animator_Controller.layers[indexOfLayer].blendingMode = AnimatorLayerBlendingMode.Additive;
+                        acEd.Animator_Controller.layers[indexOfLayer].defaultWeight = 1;
+
+                        break;
+                    }
+                    else
+                    {
+                        indexOfLayer++;
+                    }
+                }
+
+                la++;
+            }
+
+            GUILayout.Space(10);
+
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            EditorGUI.BeginChangeCheck();
+
+            optionsLayers = listLayer.ToArray();
+
+            this.selectedL = EditorGUILayout.Popup("Remove Layer:", selectedL, optionsLayers);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                acEd.selected_option_L = optionsLayers[selectedL];
+            }
+
+            GUILayout.Space(10);
+
+            if (GUILayout.Button("Remove"))
+            {
+                int indexOfLayer = 0;
+                foreach (var layer in acEd.Animator_Controller.layers)
+                {
+                    if (layer.name == optionsLayers[selectedL])
+                    {
+                        acEd.Animator_Controller.RemoveLayer(indexOfLayer);
+                        break;
+                    }
+                    else
+                    {
+                        indexOfLayer++;
+                    }
+                }
+            }
+        }
+
         //=========================================EXISTING ANIMATIONS===============================================
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-
-        animStateMach = controller.layers[0].stateMachine;
 
         acEd.showAnims = EditorGUILayout.Foldout(acEd.showAnims, "Existing Animations", true);
 
@@ -122,7 +208,7 @@ public class AnimationControllerEditor : Editor
         }
 
 
-        //===========================================ADD IDLE ANIMATIONS===============================================
+        //============================================DEFAULT ANIMATIONS===============================================
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
@@ -172,106 +258,103 @@ public class AnimationControllerEditor : Editor
             }
         }
 
+        //===========================================ADD IDLE ANIMATIONS===============================================
+
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
         acEd.showSubStateMach = EditorGUILayout.Foldout(acEd.showSubStateMach, "Sub State Machine (random animations)", true);
 
         if (acEd.showSubStateMach)
         {
-            if (animStateMach.stateMachines.Length != 0)
+            animStateMach = controller.layers[0].stateMachine;
+            stateMachine = animStateMach.stateMachines[0].stateMachine;
+            GUILayout.Space(10);
+
+            GUILayout.Label("<color=#ffffffff><b>Add</b> this Animation to the " + animStateMach.stateMachines[0].stateMachine.name + ":</color>", style);
+
+            animationAddToStateMach = EditorGUILayout.ObjectField(animationAddToStateMach, typeof(AnimationClip), true) as AnimationClip;
+            GUILayout.Space(10);
+
+            EditorGUI.indentLevel++;
+
+            acEd.showBeforeThisAnimSubSM = EditorGUILayout.Foldout(acEd.showBeforeThisAnimSubSM, "Before this Animation", true);
+
+            if (acEd.showBeforeThisAnimSubSM)
             {
-                stateMachine = animStateMach.stateMachines[0].stateMachine;
-                GUILayout.Space(10);
+                addAnimationBeforeThisOneSubSM = EditorGUILayout.ObjectField(addAnimationBeforeThisOneSubSM, typeof(AnimationClip), true) as AnimationClip;
+            }
 
+            acEd.showAfterThisAnimSubSM = EditorGUILayout.Foldout(acEd.showAfterThisAnimSubSM, "After this Animation", true);
 
-                GUILayout.Label("<color=#ffffffff><b>Add</b> this Animation to the " + animStateMach.stateMachines[0].stateMachine.name + ":</color>", style);
+            if (acEd.showAfterThisAnimSubSM)
+            {
+                addAnimationAfterThisOneSubSM = EditorGUILayout.ObjectField(addAnimationAfterThisOneSubSM, typeof(AnimationClip), true) as AnimationClip;
+            }
 
-                animationAddToStateMach = EditorGUILayout.ObjectField(animationAddToStateMach, typeof(AnimationClip), true) as AnimationClip;
-                GUILayout.Space(10);
+            EditorGUI.indentLevel--;
 
-                EditorGUI.indentLevel++;
-
-                acEd.showBeforeThisAnimSubSM = EditorGUILayout.Foldout(acEd.showBeforeThisAnimSubSM, "Before this Animation", true);
-
-                if (acEd.showBeforeThisAnimSubSM)
+            GUILayout.Space(10);
+            if (GUILayout.Button("Apply"))
+            {
+                if (animationAddToStateMach == null)
                 {
-                    addAnimationBeforeThisOneSubSM = EditorGUILayout.ObjectField(addAnimationBeforeThisOneSubSM, typeof(AnimationClip), true) as AnimationClip;
+                    Debug.LogError("Insert Animation Clips to the corresponding fields.");
                 }
-
-                acEd.showAfterThisAnimSubSM = EditorGUILayout.Foldout(acEd.showAfterThisAnimSubSM, "After this Animation", true);
-
-                if (acEd.showAfterThisAnimSubSM)
+                else if (addAnimationBeforeThisOneSubSM == null && addAnimationAfterThisOneSubSM == null)
                 {
-                    addAnimationAfterThisOneSubSM = EditorGUILayout.ObjectField(addAnimationAfterThisOneSubSM, typeof(AnimationClip), true) as AnimationClip;
+                    SimpleAdditionSubSM(stateMachine, animationAddToStateMach);
                 }
-
-                EditorGUI.indentLevel--;
-
-                GUILayout.Space(10);
-                if (GUILayout.Button("Apply"))
+                else if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM == null)
                 {
-                    if (animationAddToStateMach == null)
-                    {
-                        Debug.LogError("Insert Animation Clips to the corresponding fields.");
-                    }
-                    else if (addAnimationBeforeThisOneSubSM == null && addAnimationAfterThisOneSubSM == null)
-                    {
-                        SimpleAdditionSubSM(stateMachine);
-                    }
-                    else if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM == null)
-                    {
-                        AnimatorState animBefore = FindStateSubSM(stateMachine, addAnimationBeforeThisOneSubSM.name);
+                    AnimatorState animBefore = FindStateSubSM(stateMachine, addAnimationBeforeThisOneSubSM.name);
 
-                        if (animBefore == null)
+                    if (animBefore == null)
+                    {
+                        Debug.LogError("The animation state you selected as a Before Animation State doesn't exist in the sub State Machine.");
+                    }
+                    else
+                    {
+                        bool isEntry = false;
+
+                        for (int i = 0; i < stateMachine.entryTransitions.Length; i++)
                         {
-                            Debug.LogError("The animation state you selected as a Before Animation State doesn't exist in the sub State Machine.");
+                            if (stateMachine.entryTransitions[i].destinationState.name == addAnimationBeforeThisOneSubSM.name)
+                            {
+                                isEntry = true;
+                                FromEntryTransitionAddStateSubSM(stateMachine, i, animationAddToStateMach, addAnimationBeforeThisOneSubSM);
+                            }
+                        }
+                        if (!isEntry)
+                        {
+                            SimpleBeforeAdditionSubSM(stateMachine, animationAddToStateMach, addAnimationBeforeThisOneSubSM);
+                        }
+                    }
+                }
+                else if (addAnimationBeforeThisOneSubSM == null && addAnimationAfterThisOneSubSM != null)
+                {
+                    AnimatorState animAfter = FindStateSubSM(stateMachine, addAnimationAfterThisOneSubSM.name);
+
+                    if (animAfter == null)
+                    {
+                        Debug.LogError("The animation state you selected as a Next Animation State doesn't exist in the sub State Machine.");
+                    }
+                    else
+                    {
+                        AnimatorStateTransition transition = animAfter.transitions[0];
+
+                        if (transition.isExit)
+                        {
+                            ToExitTransitionAddStateSubSM(stateMachine, animAfter, animationAddToStateMach);
                         }
                         else
                         {
-                            bool isEntry = false;
-
-                            Debug.Log(stateMachine.entryTransitions.Length);
-
-                            for (int i = 0; i < stateMachine.entryTransitions.Length; i++)
-                            {
-                                if (stateMachine.entryTransitions[i].destinationState.name == addAnimationBeforeThisOneSubSM.name)
-                                {
-                                    isEntry = true;
-                                    FromEntryTransitionAddStateSubSM(stateMachine, i);
-                                }
-                            }
-                            if (!isEntry)
-                            {
-                                SimpleBeforeAdditionSubSM(stateMachine);
-                            }
+                            SimpleAfterAdditionSubSM(stateMachine, animationAddToStateMach, addAnimationAfterThisOneSubSM);
                         }
                     }
-                    else if (addAnimationBeforeThisOneSubSM == null && addAnimationAfterThisOneSubSM != null)
-                    {
-                        AnimatorState animAfter = FindStateSubSM(stateMachine, addAnimationAfterThisOneSubSM.name);
-
-                        if (animAfter == null)
-                        {
-                            Debug.LogError("The animation state you selected as a Next Animation State doesn't exist in the sub State Machine.");
-                        }
-                        else
-                        {
-                            AnimatorStateTransition transition = animAfter.transitions[0];
-
-                            if (transition.isExit)
-                            {
-                                ToExitTransitionAddStateSubSM(stateMachine, animAfter);
-                            }
-                            else
-                            {
-                                SimpleAfterAdditionSubSM(stateMachine);
-                            }
-                        }
-                    }
-                    else if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM != null)
-                    {
-                        BetweenTwoAnimStatesAddStateSubSM(stateMachine);
-                    }
+                }
+                else if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM != null)
+                {
+                    BetweenTwoAnimStatesAddStateSubSM(stateMachine, animationAddToStateMach, addAnimationAfterThisOneSubSM, addAnimationBeforeThisOneSubSM);
                 }
             }
         }
@@ -281,15 +364,32 @@ public class AnimationControllerEditor : Editor
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
-        acEd.showAnimContr = EditorGUILayout.Foldout(acEd.showAnimContr, "Animator Controller", true);
+        acEd.showAnimContr = EditorGUILayout.Foldout(acEd.showAnimContr, "Animator Controller Layers", true);
 
         if (acEd.showAnimContr)
         {
+            foreach (var layer in acEd.Animator_Controller.layers)
+            {
+                if (!listLayer.Contains(layer.name))
+                    listLayer.Add(layer.name);
+            }
+
             GUILayout.Space(10);
 
             GUILayout.Label("<color=#ffffffff><b>Add</b> this Animation:</color>", style);
 
             animationAdd = EditorGUILayout.ObjectField(animationAdd, typeof(AnimationClip), true) as AnimationClip;
+
+            EditorGUI.BeginChangeCheck();
+
+            optionsLayers = listLayer.ToArray();
+
+            this.selectedL = EditorGUILayout.Popup("in this Layer:", selectedL, optionsLayers);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                acEd.selected_option_L = optionsLayers[selectedL];
+            }
 
             GUILayout.Space(10);
 
@@ -316,76 +416,165 @@ public class AnimationControllerEditor : Editor
             {
                 AnimationClip m = new AnimationClip { name = animationAdd.name };
 
-                if (animationAdd == null)
+                if (controller.layers[0].name == optionsLayers[selectedL])
                 {
-                    Debug.LogError("Insert Animation Clips to the corresponding fields.");
-                }
-                else if (addAnimationBeforeThisOne == null && addAnimationAfterThisOne == null)
-                {
-                    SimpleAddition(controller, m);
-                }
-                else if (addAnimationBeforeThisOne != null && addAnimationAfterThisOne == null)
-                {
-                    AnimatorState animBefore = FindState(controller, addAnimationBeforeThisOne.name);
+                    animStateMach = controller.layers[0].stateMachine;
 
-                    if (animBefore == null)
+                    if (animationAdd == null)
                     {
-                        Debug.LogError("The animation state you selected as a Before Animation State doesn't exist in the AnimatorController.");
+                        Debug.LogError("Insert Animation Clips to the corresponding fields.");
                     }
-                    else
+                    else if (addAnimationBeforeThisOne == null && addAnimationAfterThisOne == null)
                     {
-                        bool isAnyState = false;
-
-                        for (int i = 0; i < animStateMach.anyStateTransitions.Length; i++)
-                        {
-                            if (animStateMach.anyStateTransitions[i].destinationState.name == addAnimationBeforeThisOne.name)
-                            {
-                                isAnyState = true;
-                                FromAnyStateTransitionAddState(controller, i);
-                            }
-                        }
-                        if (!isAnyState)
-                        {
-                            SimpleBeforeAddition(controller);
-                        }
+                        SimpleAddition(controller, m, animStateMach);
                     }
-                }
-                else if (addAnimationBeforeThisOne == null && addAnimationAfterThisOne != null)
-                {
-                    AnimatorState animAfter = FindState(controller, addAnimationAfterThisOne.name);
-                    AnimatorState default_state = animStateMach.defaultState;
-
-                    if (animAfter == null)
+                    else if (addAnimationBeforeThisOne != null && addAnimationAfterThisOne == null)
                     {
-                        Debug.LogError("The animation state you selected as a Next Animation State doesn't exist in the AnimatorController.");
-                    }
-                    else
-                    {
-                        AnimatorStateTransition transition = animAfter.transitions[0];
+                        AnimatorState animBefore = FindState(controller, addAnimationBeforeThisOne.name);
 
-                        if (transition.destinationState == default_state)
+                        if (animBefore == null)
                         {
-                            ToDefaultTransitionAddState(controller, animAfter, default_state);
+                            Debug.LogError("The animation state you selected as a Before Animation State doesn't exist in the AnimatorController.");
                         }
                         else
                         {
-                            SimpleAfterAddition(controller);
+                            bool isAnyState = false;
+
+                            for (int i = 0; i < animStateMach.anyStateTransitions.Length; i++)
+                            {
+                                if (animStateMach.anyStateTransitions[i].destinationState.name == addAnimationBeforeThisOne.name)
+                                {
+                                    isAnyState = true;
+                                    FromAnyStateTransitionAddState(controller, i, animStateMach);
+                                }
+                            }
+                            if (!isAnyState)
+                            {
+                                SimpleBeforeAddition(controller, animStateMach);
+                            }
                         }
                     }
+                    else if (addAnimationBeforeThisOne == null && addAnimationAfterThisOne != null)
+                    {
+                        AnimatorState animAfter = FindState(controller, addAnimationAfterThisOne.name);
+                        AnimatorState default_state = animStateMach.defaultState;
+
+                        if (animAfter == null)
+                        {
+                            Debug.LogError("The animation state you selected as a Next Animation State doesn't exist in the AnimatorController.");
+                        }
+                        else
+                        {
+                            AnimatorStateTransition transition = animAfter.transitions[0];
+
+                            if (transition.destinationState == default_state)
+                            {
+                                ToDefaultTransitionAddState(controller, animAfter, default_state, animStateMach);
+                            }
+                            else
+                            {
+                                SimpleAfterAddition(controller, animStateMach);
+                            }
+                        }
+                    }
+                    else if (addAnimationBeforeThisOne != null && addAnimationAfterThisOne != null)
+                    {
+                        BetweenTwoAnimStatesAddState(controller, animStateMach);
+                    }
                 }
-                else if (addAnimationBeforeThisOne != null && addAnimationAfterThisOne != null)
+                else
                 {
-                    BetweenTwoAnimStatesAddState(controller);
+                    int indexOfLayer = 0;
+                    foreach (var layer in acEd.Animator_Controller.layers)
+                    {
+                        if (layer.name != optionsLayers[selectedL])
+                        {
+                            indexOfLayer++;
+                        }
+                    }
+                    animStateMach = controller.layers[indexOfLayer].stateMachine;
+
+                    if (animationAdd == null)
+                    {
+                        Debug.LogError("Insert Animation Clips to the corresponding fields.");
+                    }
+                    else if (addAnimationBeforeThisOne == null && addAnimationAfterThisOne == null)
+                    {
+                        SimpleAdditionSubSM(animStateMach, animationAdd);
+                    }
+                    else if (addAnimationBeforeThisOne != null && addAnimationAfterThisOne == null)
+                    {
+                        AnimatorState animBefore = FindStateSubSM(animStateMach, addAnimationBeforeThisOne.name);
+
+                        if (animBefore == null)
+                        {
+                            Debug.LogError("The animation state you selected as a Before Animation State doesn't exist in the sub State Machine.");
+                        }
+                        else
+                        {
+                            bool isEntry = false;
+
+                            for (int i = 0; i < animStateMach.entryTransitions.Length; i++)
+                            {
+                                if (animStateMach.entryTransitions[i].destinationState.name == addAnimationBeforeThisOne.name)
+                                {
+                                    isEntry = true;
+                                    FromEntryTransitionAddStateSubSM(animStateMach, i, animationAdd, addAnimationBeforeThisOne);
+                                }
+                            }
+                            if (!isEntry)
+                            {
+                                SimpleBeforeAdditionSubSM(animStateMach, animationAdd, addAnimationBeforeThisOne);
+                            }
+                        }
+                    }
+                    else if (addAnimationBeforeThisOne == null && addAnimationAfterThisOne != null)
+                    {
+                        AnimatorState animAfter = FindStateSubSM(animStateMach, addAnimationAfterThisOne.name);
+
+                        if (animAfter == null)
+                        {
+                            Debug.LogError("The animation state you selected as a Next Animation State doesn't exist in the sub State Machine.");
+                        }
+                        else
+                        {
+                            AnimatorStateTransition transition = animAfter.transitions[0];
+
+                            if (transition.isExit)
+                            {
+                                ToExitTransitionAddStateSubSM(animStateMach, animAfter, animationAdd);
+                            }
+                            else
+                            {
+                                SimpleAfterAdditionSubSM(animStateMach, animationAdd, addAnimationAfterThisOne);
+                            }
+                        }
+                    }
+                    else if (addAnimationBeforeThisOne != null && addAnimationAfterThisOne != null)
+                    {
+                        BetweenTwoAnimStatesAddStateSubSM(animStateMach, animationAdd, addAnimationAfterThisOne, addAnimationBeforeThisOne);
+                    }
                 }
             }
         }
 
-        //==========================================REMOVE ANIMATIONS===============================================
+        //==========================================REPLACE ANIMATIONS===============================================
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
         GUILayout.Label("<color=#ffffffff><b>Replace</b> this animation:</color>", style);
         replaceThisAnimation = EditorGUILayout.ObjectField(replaceThisAnimation, typeof(AnimationClip), true) as AnimationClip;
+
+        EditorGUI.BeginChangeCheck();
+
+        optionsLayers = listLayer.ToArray();
+
+        this.selectedL = EditorGUILayout.Popup("in this Layer:", selectedL, optionsLayers);
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            acEd.selected_option_L = optionsLayers[selectedL];
+        }
 
         GUILayout.Space(10);
 
@@ -396,7 +585,24 @@ public class AnimationControllerEditor : Editor
 
         if (GUILayout.Button("Replace"))
         {
-            AnimatorState stateInBase = FindState(controller, replaceThisAnimation.name);
+            int indexOfLayer = 0;
+
+            foreach (var layer in acEd.Animator_Controller.layers)
+            {
+                if (layer.name != optionsLayers[selectedL])
+                {
+                    indexOfLayer++;
+                }
+            }
+            animStateMach = controller.layers[indexOfLayer].stateMachine;
+
+            if (controller.layers[0].name == optionsLayers[selectedL])
+            {
+                animStateMach = controller.layers[0].stateMachine;
+                indexOfLayer = 0;
+            }
+
+            AnimatorState stateInBase = FindState(controller, replaceThisAnimation.name, indexOfLayer);
             if (stateInBase == null)
             {
                 stateMachine = animStateMach.stateMachines[0].stateMachine;
@@ -413,15 +619,17 @@ public class AnimationControllerEditor : Editor
                     stateInSubSM.name = withThisAnimation.name;
                 }
             }
-            else {
+            else
+            {
+
                 stateInBase.motion = withThisAnimation;
                 stateInBase.name = withThisAnimation.name;
             }
         }
 
+        //==========================================REMOVE ANIMATIONS===============================================
+
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-
-
         EditorGUI.BeginChangeCheck();
 
         options = list.ToArray();
@@ -432,12 +640,39 @@ public class AnimationControllerEditor : Editor
         {
             acEd.selected_option = options[selected];
         }
+        EditorGUI.BeginChangeCheck();
+
+        optionsLayers = listLayer.ToArray();
+
+        this.selectedL = EditorGUILayout.Popup("in this Layer:", selectedL, optionsLayers);
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            acEd.selected_option_L = optionsLayers[selectedL];
+        }
 
         GUILayout.Space(10);
 
         if (GUILayout.Button("Remove"))
         {
-            AnimatorState removable = FindState(controller, options[selected]);
+            int indexOfLayer = 0;
+
+            foreach (var layer in acEd.Animator_Controller.layers)
+            {
+                if (layer.name != optionsLayers[selectedL])
+                {
+                    indexOfLayer++;
+                }
+            }
+            animStateMach = controller.layers[indexOfLayer].stateMachine;
+
+            if (controller.layers[0].name == optionsLayers[selectedL])
+            {
+                animStateMach = controller.layers[0].stateMachine;
+                indexOfLayer = 0;
+            }
+
+            AnimatorState removable = FindState(controller, options[selected], indexOfLayer);
             if (removable == null)
             {
                 stateMachine = animStateMach.stateMachines[0].stateMachine;
@@ -489,7 +724,7 @@ public class AnimationControllerEditor : Editor
                     }
                 }
             }
-            else
+            else if (indexOfLayer == 0)
             {
                 AnimatorState beforeRemovable = FindPreviousState(controller, options[selected]);
                 AnimatorState afterRemovable = FindNextState(controller, options[selected]);
@@ -535,6 +770,55 @@ public class AnimationControllerEditor : Editor
 
                             animStateMach.RemoveAnyStateTransition(asTrans);
                             animStateMach.RemoveState(removable);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                AnimatorState removeSt = FindStateSubSM(animStateMach, options[selected]);
+                AnimatorState beforeRemovable = FindPreviousStateSubSM(animStateMach, options[selected]);
+                AnimatorState afterRemovable = FindNextStateSubSM(animStateMach, options[selected]);
+
+                AnimatorStateTransition trans = removeSt.transitions[0];
+
+                if (afterRemovable == null && trans.isExit)
+                {
+                    removeSt.RemoveTransition(trans);
+                    animStateMach.RemoveState(removeSt);
+
+                    beforeRemovable.AddExitTransition();
+                }
+                else if (beforeRemovable != null && afterRemovable == null)
+                {
+                    foreach (var asTrans in animStateMach.entryTransitions)
+                    {
+                        if (asTrans.destinationState.name == removeSt.name)
+                        {
+                            animStateMach.RemoveEntryTransition(asTrans);
+                            animStateMach.RemoveState(removeSt);
+                        }
+                    }
+                }
+                else if (beforeRemovable != null && afterRemovable != null)
+                {
+                    beforeRemovable.AddTransition(afterRemovable);
+                    animStateMach.RemoveState(removeSt);
+                }
+                else if (beforeRemovable == null && afterRemovable == null)
+                {
+                    animStateMach.RemoveState(removeSt);
+                }
+                else if (beforeRemovable == null && afterRemovable != null)
+                {
+                    foreach (var asTrans in animStateMach.entryTransitions)
+                    {
+                        if (asTrans.destinationState.name == removeSt.name)
+                        {
+                            animStateMach.AddEntryTransition(afterRemovable);
+
+                            animStateMach.RemoveEntryTransition(asTrans);
+                            animStateMach.RemoveState(removeSt);
                         }
                     }
                 }
@@ -608,11 +892,24 @@ public class AnimationControllerEditor : Editor
         return null;
     }
 
+    public AnimatorState FindState(AnimatorController animCont, string stateName, int layer)
+    {
+        foreach (var child in animCont.layers[layer].stateMachine.states)
+        {
+            if (child.state.name == stateName)
+            {
+                return child.state;
+            }
+        }
+        Debug.LogError("Could not find state: " + stateName);
+        return null;
+    }
+
     public AnimatorState FindPreviousState(AnimatorController animCont, string beforeThisState)
     {
         for (int i = 0; i < animCont.layers.Length; i++)
         {
-            foreach (var state in animCont.layers[0].stateMachine.states)
+            foreach (var state in animCont.layers[i].stateMachine.states)
             {
                 foreach (var s in state.state.transitions)
                 {
@@ -647,7 +944,7 @@ public class AnimationControllerEditor : Editor
     //=================================================ADD STATE FUNCTIONS(Animator)=======================================================
 
 
-    public void SimpleAddition(AnimatorController animCont, AnimationClip m)
+    public void SimpleAddition(AnimatorController animCont, AnimationClip m, AnimatorStateMachine animStateMach)
     {
         AnimatorState default_state = animStateMach.defaultState;
 
@@ -660,7 +957,7 @@ public class AnimationControllerEditor : Editor
         animStateMach.AddAnyStateTransition(add);
     }
 
-    public void SimpleAfterAddition(AnimatorController animCont)
+    public void SimpleAfterAddition(AnimatorController animCont, AnimatorStateMachine animStateMach)
     {
         AnimatorState nextState = FindNextState(animCont, addAnimationAfterThisOne.name);
 
@@ -695,7 +992,7 @@ public class AnimationControllerEditor : Editor
         }
     }
 
-    public void SimpleBeforeAddition(AnimatorController animCont)
+    public void SimpleBeforeAddition(AnimatorController animCont, AnimatorStateMachine animStateMach)
     {
         AnimatorState previousState = FindPreviousState(animCont, addAnimationBeforeThisOne.name);
 
@@ -729,7 +1026,7 @@ public class AnimationControllerEditor : Editor
         }
     }
 
-    public void ToDefaultTransitionAddState(AnimatorController animCont, AnimatorState animAfter, AnimatorState default_state)
+    public void ToDefaultTransitionAddState(AnimatorController animCont, AnimatorState animAfter, AnimatorState default_state, AnimatorStateMachine animStateMach)
     {
         AnimationClip m = new AnimationClip { name = animationAdd.name };
 
@@ -749,7 +1046,7 @@ public class AnimationControllerEditor : Editor
         }
     }
 
-    public void BetweenTwoAnimStatesAddState(AnimatorController animCont)
+    public void BetweenTwoAnimStatesAddState(AnimatorController animCont, AnimatorStateMachine animStateMach)
     {
         if (addAnimationBeforeThisOne.name == addAnimationAfterThisOne.name)
         {
@@ -800,7 +1097,7 @@ public class AnimationControllerEditor : Editor
         }
     }
 
-    public void FromAnyStateTransitionAddState(AnimatorController animCont, int i)
+    public void FromAnyStateTransitionAddState(AnimatorController animCont, int i, AnimatorStateMachine animStateMach)
     {
         AnimationClip m = new AnimationClip { name = animationAdd.name };
 
@@ -820,20 +1117,20 @@ public class AnimationControllerEditor : Editor
     //==============================================ADD STATE FUNCTIONS(Sub State Machine)=====================================================
 
 
-    public void SimpleAdditionSubSM(AnimatorStateMachine stateMachine)
+    public void SimpleAdditionSubSM(AnimatorStateMachine stateMachine, AnimationClip addThisAnim)
     {
-        stateMachine.AddState(animationAddToStateMach.name).motion = animationAddToStateMach;
+        stateMachine.AddState(addThisAnim.name).motion = addThisAnim;
 
-        AnimatorState newStateInSubSM = FindStateSubSM(stateMachine, animationAddToStateMach.name);
+        AnimatorState newStateInSubSM = FindStateSubSM(stateMachine, addThisAnim.name);
         stateMachine.AddEntryTransition(newStateInSubSM);
 
-        newStateInSubSM.motion = animationAddToStateMach;
+        newStateInSubSM.motion = addThisAnim;
         newStateInSubSM.AddExitTransition();
     }
 
-    public void SimpleAfterAdditionSubSM(AnimatorStateMachine stateMachine)
+    public void SimpleAfterAdditionSubSM(AnimatorStateMachine stateMachine, AnimationClip addThisAnim, AnimationClip afterThisAnim)
     {
-        AnimatorState nextState = FindNextStateSubSM(stateMachine, addAnimationAfterThisOneSubSM.name);
+        AnimatorState nextState = FindNextStateSubSM(stateMachine, afterThisAnim.name);
 
         if (nextState == null)
         {
@@ -841,12 +1138,12 @@ public class AnimationControllerEditor : Editor
         }
         else
         {
-            stateMachine.AddState(animationAddToStateMach.name);
+            stateMachine.AddState(addThisAnim.name);
 
-            AnimatorState afterThisState = FindStateSubSM(stateMachine, addAnimationAfterThisOneSubSM.name);
+            AnimatorState afterThisState = FindStateSubSM(stateMachine, afterThisAnim.name);
 
-            AnimatorState add = FindStateSubSM(stateMachine, animationAddToStateMach.name);
-            add.motion = animationAddToStateMach;
+            AnimatorState add = FindStateSubSM(stateMachine, addThisAnim.name);
+            add.motion = addThisAnim;
             add.AddTransition(nextState);
             afterThisState.AddTransition(add);
 
@@ -863,9 +1160,9 @@ public class AnimationControllerEditor : Editor
         }
     }
 
-    public void SimpleBeforeAdditionSubSM(AnimatorStateMachine stateMachine)
+    public void SimpleBeforeAdditionSubSM(AnimatorStateMachine stateMachine, AnimationClip addThisAnim, AnimationClip beforeThis)
     {
-        AnimatorState previousState = FindPreviousStateSubSM(stateMachine, addAnimationBeforeThisOneSubSM.name);
+        AnimatorState previousState = FindPreviousStateSubSM(stateMachine, beforeThis.name);
 
         if (previousState == null)
         {
@@ -873,13 +1170,13 @@ public class AnimationControllerEditor : Editor
         }
         else
         {
-            AnimatorState beforeThisState = FindStateSubSM(stateMachine, addAnimationBeforeThisOneSubSM.name);
+            AnimatorState beforeThisState = FindStateSubSM(stateMachine, beforeThis.name);
 
-            stateMachine.AddState(animationAddToStateMach.name);
+            stateMachine.AddState(addThisAnim.name);
 
-            AnimatorState newStateInSubSM = FindStateSubSM(stateMachine, animationAddToStateMach.name);
+            AnimatorState newStateInSubSM = FindStateSubSM(stateMachine, addThisAnim.name);
 
-            newStateInSubSM.motion = animationAddToStateMach;
+            newStateInSubSM.motion = addThisAnim;
             newStateInSubSM.AddTransition(beforeThisState);
 
             previousState.AddTransition(newStateInSubSM);
@@ -897,12 +1194,12 @@ public class AnimationControllerEditor : Editor
         }
     }
 
-    public void ToExitTransitionAddStateSubSM(AnimatorStateMachine stateMachine, AnimatorState animAfter)
+    public void ToExitTransitionAddStateSubSM(AnimatorStateMachine stateMachine, AnimatorState animAfter, AnimationClip addThisAnim)
     {
-        stateMachine.AddState(animationAddToStateMach.name);
+        stateMachine.AddState(addThisAnim.name);
 
-        AnimatorState add = FindStateSubSM(stateMachine, animationAddToStateMach.name);
-        add.motion = animationAddToStateMach;
+        AnimatorState add = FindStateSubSM(stateMachine, addThisAnim.name);
+        add.motion = addThisAnim;
         add.AddExitTransition();
         animAfter.AddTransition(add);
 
@@ -915,16 +1212,16 @@ public class AnimationControllerEditor : Editor
         }
     }
 
-    public void BetweenTwoAnimStatesAddStateSubSM(AnimatorStateMachine stateMachine)
+    public void BetweenTwoAnimStatesAddStateSubSM(AnimatorStateMachine stateMachine, AnimationClip addThisAnim, AnimationClip afterThisAnim, AnimationClip beforeThisAnim)
     {
-        if (addAnimationBeforeThisOneSubSM.name == addAnimationAfterThisOneSubSM.name)
+        if (beforeThisAnim.name == afterThisAnim.name)
         {
             Debug.LogError("You can not add a new Animation State that the parent and the child is the same Animation State.");
         }
         else
         {
-            AnimatorState animAfter = FindStateSubSM(stateMachine, addAnimationAfterThisOneSubSM.name);
-            AnimatorState animPrev = FindStateSubSM(stateMachine, addAnimationBeforeThisOneSubSM.name);
+            AnimatorState animAfter = FindStateSubSM(stateMachine, afterThisAnim.name);
+            AnimatorState animPrev = FindStateSubSM(stateMachine, beforeThisAnim.name);
 
             if (animAfter == null && animPrev != null)
             {
@@ -943,39 +1240,54 @@ public class AnimationControllerEditor : Editor
             }
             else
             {
-                stateMachine.AddState(animationAddToStateMach.name);
+                stateMachine.AddState(addThisAnim.name);
 
                 foreach (var trans in animAfter.transitions)
                 {
                     if (trans.destinationState != null)
                     {
-                        if (trans.destinationState.name == addAnimationBeforeThisOneSubSM.name)
+                        if (trans.destinationState.name == beforeThisAnim.name)
                         {
                             animAfter.RemoveTransition(trans);
                         }
                     }
                 }
 
-                AnimatorState add = FindStateSubSM(stateMachine, animationAddToStateMach.name);
-                add.motion = animationAddToStateMach;
+                AnimatorState add = FindStateSubSM(stateMachine, addThisAnim.name);
+                add.motion = addThisAnim;
                 add.AddTransition(animPrev);
                 animAfter.AddTransition(add);
             }
         }
     }
 
-    public void FromEntryTransitionAddStateSubSM(AnimatorStateMachine stateMachine, int i)
+    public void FromEntryTransitionAddStateSubSM(AnimatorStateMachine stateMachine, int i, AnimationClip addThisAnim, AnimationClip beforeThisAnim)
     {
-        stateMachine.AddState(animationAddToStateMach.name);
+        AnimatorState animationStateAddBeforeThis = FindStateSubSM(stateMachine, beforeThisAnim.name);
+        if (animationStateAddBeforeThis.name == stateMachine.defaultState.name)
+        {
+            animStateMach.AddState(addThisAnim.name).motion = addThisAnim;
 
-        AnimatorState newStateInSubSM = FindStateSubSM(stateMachine, animationAddToStateMach.name);
-        AnimatorState animationStateAddBeforeThis = FindStateSubSM(stateMachine, addAnimationBeforeThisOneSubSM.name);
+            AnimatorState old_default = FindStateSubSM(stateMachine, stateMachine.defaultState.name);
+            AnimatorState new_default = FindStateSubSM(stateMachine, addThisAnim.name);
 
-        newStateInSubSM.motion = animationAddToStateMach;
-        newStateInSubSM.AddTransition(animationStateAddBeforeThis);
-        stateMachine.AddEntryTransition(newStateInSubSM);
+            stateMachine.defaultState = new_default;
+            stateMachine.AddEntryTransition(new_default);
+            new_default.AddTransition(old_default);
+            stateMachine.RemoveEntryTransition(stateMachine.entryTransitions[i]);
+        }
+        else
+        {
+            stateMachine.AddState(addThisAnim.name);
 
-        stateMachine.RemoveEntryTransition(stateMachine.entryTransitions[i]);
+            AnimatorState newStateInSubSM = FindStateSubSM(stateMachine, addThisAnim.name);
+
+            newStateInSubSM.motion = addThisAnim;
+            newStateInSubSM.AddTransition(animationStateAddBeforeThis);
+            stateMachine.AddEntryTransition(newStateInSubSM);
+
+            stateMachine.RemoveEntryTransition(stateMachine.entryTransitions[i]);
+        }
     }
 
 
