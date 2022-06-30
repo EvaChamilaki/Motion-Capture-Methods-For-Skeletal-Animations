@@ -122,7 +122,6 @@ public class AnimatorControllerSingleton : MonoBehaviour
         AnimationClip animcl = FindAnimation(controller, animName);
         bool hasAnother = true;
 
-        //character.GetComponent<Animator>().Play(animName);
         character.GetComponent<Animator>().CrossFadeInFixedTime(animName, 0.4f);
 
         yield return new WaitForSeconds(animcl.length);
@@ -176,7 +175,6 @@ public class AnimatorControllerSingleton : MonoBehaviour
         AnimatorState default_state = animStateMach.defaultState;
         AnimationClip default_clip = FindAnimation(Animator_Controller, default_state.name);
 
-        //character.GetComponent<Animator>().Play(default_state.name);
         character.GetComponent<Animator>().CrossFadeInFixedTime(default_state.name, 0.4f);
 
         yield return new WaitForSeconds(default_clip.length);
@@ -205,10 +203,6 @@ public class AnimatorControllerSingleton : MonoBehaviour
                 animName = state.name;
             }
         }
-
-        //character.GetComponent<Animator>().Play(default_state.name);
-
-        //yield return new WaitForSeconds(default_clip.length);
     }
 
     public float DurationOfAnimsSubSM(AnimatorStateMachine animStMach, string animName)
@@ -325,18 +319,6 @@ public class AnimatorControllerSingleton : MonoBehaviour
             }
         }
 
-        return null;
-    }
-
-    public IEnumerator GetKeyFromValue(Dictionary<IEnumerator, GameObject> dict, GameObject valueVar)
-    {
-        foreach (var keyVar in dict.Keys)
-        {
-            if (dict[keyVar] == valueVar)
-            {
-                return keyVar;
-            }
-        }
         return null;
     }
 }
