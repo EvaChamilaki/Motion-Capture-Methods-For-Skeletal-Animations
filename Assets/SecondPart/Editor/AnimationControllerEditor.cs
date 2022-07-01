@@ -10,6 +10,8 @@ using UnityEngine;
 public class AnimationControllerEditor : Editor
 {
     int selected = 0, selectedL = 0;
+    bool toExit = false, fromEntry;
+
 
     private AnimationClip animationAdd, addAnimationAfterThisOne, addAnimationBeforeThisOne
         , addDefaultState, animationAddToStateMach, addAnimationAfterThisOneSubSM, addAnimationBeforeThisOneSubSM
@@ -291,70 +293,209 @@ public class AnimationControllerEditor : Editor
                 addAnimationAfterThisOneSubSM = EditorGUILayout.ObjectField(addAnimationAfterThisOneSubSM, typeof(AnimationClip), true) as AnimationClip;
             }
 
+            GUILayout.BeginHorizontal();
+            {
+                fromEntry = EditorGUILayout.Toggle("from Entry", fromEntry);
+                toExit = EditorGUILayout.Toggle("|   to Exit", toExit);
+            }
+            GUILayout.EndHorizontal();
             EditorGUI.indentLevel--;
+
 
             GUILayout.Space(10);
             if (GUILayout.Button("Apply"))
             {
-                if (animationAddToStateMach == null)
+                if (fromEntry && toExit)
                 {
-                    Debug.LogError("Insert Animation Clips to the corresponding fields.");
-                }
-                else if (addAnimationBeforeThisOneSubSM == null && addAnimationAfterThisOneSubSM == null)
-                {
-                    SimpleAdditionSubSM(stateMachine, animationAddToStateMach);
-                }
-                else if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM == null)
-                {
-                    AnimatorState animBefore = FindStateSubSM(stateMachine, addAnimationBeforeThisOneSubSM.name);
-
-                    if (animBefore == null)
+                    if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM != null)
                     {
-                        Debug.LogError("The animation state you selected as a Before Animation State doesn't exist in the sub State Machine.");
+                        Debug.LogError("Select only one of the Before and After fields.");
                     }
                     else
                     {
-                        bool isEntry = false;
-
-                        for (int i = 0; i < stateMachine.entryTransitions.Length; i++)
-                        {
-                            if (stateMachine.entryTransitions[i].destinationState.name == addAnimationBeforeThisOneSubSM.name)
-                            {
-                                isEntry = true;
-                                FromEntryTransitionAddStateSubSM(stateMachine, i, animationAddToStateMach, addAnimationBeforeThisOneSubSM);
-                            }
-                        }
-                        if (!isEntry)
-                        {
-                            SimpleBeforeAdditionSubSM(stateMachine, animationAddToStateMach, addAnimationBeforeThisOneSubSM);
-                        }
+                        SimpleAdditionSubSM(stateMachine, animationAddToStateMach);
                     }
                 }
-                else if (addAnimationBeforeThisOneSubSM == null && addAnimationAfterThisOneSubSM != null)
+                else if (fromEntry && !toExit)
                 {
-                    AnimatorState animAfter = FindStateSubSM(stateMachine, addAnimationAfterThisOneSubSM.name);
-
-                    if (animAfter == null)
+                    if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM != null)
                     {
-                        Debug.LogError("The animation state you selected as a Next Animation State doesn't exist in the sub State Machine.");
+                        Debug.LogError("Select only one of the Before and After fields.");
                     }
-                    else
+                    else if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM == null)
                     {
-                        AnimatorStateTransition transition = animAfter.transitions[0];
+                        AnimatorState animBefore = FindStateSubSM(stateMachine, addAnimationBeforeThisOneSubSM.name);
 
-                        if (transition.isExit)
+                        if (animBefore == null)
                         {
-                            ToExitTransitionAddStateSubSM(stateMachine, animAfter, animationAddToStateMach);
+                            Debug.LogError("The animation state you selected as a Before Animation State doesn't exist in the sub State Machine.");
                         }
                         else
                         {
-                            SimpleAfterAdditionSubSM(stateMachine, animationAddToStateMach, addAnimationAfterThisOneSubSM);
+                            bool isEntry = false;
+
+                            for (int i = 0; i < stateMachine.entryTransitions.Length; i++)
+                            {
+                                if (stateMachine.entryTransitions[i].destinationState.name == addAnimationBeforeThisOneSubSM.name)
+                                {
+                                    isEntry = true;
+
+                                    FromEntryTransitionAddStateSubSM(stateMachine, i, animationAddToStateMach, addAnimationBeforeThisOneSubSM);
+                                }
+                            }
+                            if (!isEntry)
+                            {
+                                AnimatorState addTransToIt = FindPreviousStateSubSM(stateMachine, animBefore.name);
+
+                                FromEntryToState(stateMachine, addTransToIt, animationAddToStateMach);
+                            }
+                        }
+                    }
+                    else if (addAnimationBeforeThisOneSubSM == null && addAnimationAfterThisOneSubSM != null)
+                    {
+                        AnimatorState animAfter = FindStateSubSM(stateMachine, addAnimationAfterThisOneSubSM.name);
+
+                        if (animAfter == null)
+                        {
+                            Debug.LogError("The animation state you selected as a Next Animation State doesn't exist in the sub State Machine.");
+                        }
+                        else
+                        {
+                            AnimatorStateTransition transition = animAfter.transitions[0];
+
+                            if (transition.isExit)
+                            {
+                                SimpleAdditionSubSM(stateMachine, animationAddToStateMach);
+                            }
+                            else
+                            {
+                                AnimatorState addTransToIt = FindNextStateSubSM(stateMachine, animAfter.name);
+
+                                FromEntryToState(stateMachine, addTransToIt, animationAddToStateMach);
+                            }
                         }
                     }
                 }
-                else if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM != null)
+                else if (!fromEntry && toExit)
                 {
-                    BetweenTwoAnimStatesAddStateSubSM(stateMachine, animationAddToStateMach, addAnimationAfterThisOneSubSM, addAnimationBeforeThisOneSubSM);
+                    if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM != null)
+                    {
+                        Debug.LogError("Select only one of the Before and After fields.");
+                    }
+                    else if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM == null)
+                    {
+                        AnimatorState animBefore = FindStateSubSM(stateMachine, addAnimationBeforeThisOneSubSM.name);
+
+                        if (animBefore == null)
+                        {
+                            Debug.LogError("The animation state you selected as a Before Animation State doesn't exist in the sub State Machine.");
+                        }
+                        else
+                        {
+                            bool isEntry = false;
+
+                            for (int i = 0; i < stateMachine.entryTransitions.Length; i++)
+                            {
+                                if (stateMachine.entryTransitions[i].destinationState.name == addAnimationBeforeThisOneSubSM.name)
+                                {
+                                    SimpleAdditionSubSM(stateMachine, animationAddToStateMach);
+                                }
+                            }
+                            if (!isEntry)
+                            {
+                                AnimatorState addTransToIt = FindPreviousStateSubSM(stateMachine, animBefore.name);
+
+                                FromStateToExit(stateMachine, addTransToIt, animationAddToStateMach);
+                            }
+                        }
+                    }
+                    else if (addAnimationBeforeThisOneSubSM == null && addAnimationAfterThisOneSubSM != null)
+                    {
+                        AnimatorState animAfter = FindStateSubSM(stateMachine, addAnimationAfterThisOneSubSM.name);
+
+                        if (animAfter == null)
+                        {
+                            Debug.LogError("The animation state you selected as a Next Animation State doesn't exist in the sub State Machine.");
+                        }
+                        else
+                        {
+                            AnimatorStateTransition transition = animAfter.transitions[0];
+
+                            if (transition.isExit)
+                            {
+                                ToExitTransitionAddStateSubSM(stateMachine, animAfter, animationAddToStateMach);
+                            }
+                            else
+                            {
+                                AnimatorState addTransToIt = FindNextStateSubSM(stateMachine, animAfter.name);
+
+                                FromStateToExit(stateMachine, addTransToIt, animationAddToStateMach);
+                            }
+                        }
+                    }
+                }
+                else if (!fromEntry && !toExit)
+                {
+                    if (animationAddToStateMach == null)
+                    {
+                        Debug.LogError("Insert Animation Clips to the corresponding fields.");
+                    }
+                    else if (addAnimationBeforeThisOneSubSM == null && addAnimationAfterThisOneSubSM == null)
+                    {
+                        SimpleAdditionSubSM(stateMachine, animationAddToStateMach);
+                    }
+                    else if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM == null)
+                    {
+                        AnimatorState animBefore = FindStateSubSM(stateMachine, addAnimationBeforeThisOneSubSM.name);
+
+                        if (animBefore == null)
+                        {
+                            Debug.LogError("The animation state you selected as a Before Animation State doesn't exist in the sub State Machine.");
+                        }
+                        else
+                        {
+                            bool isEntry = false;
+
+                            for (int i = 0; i < stateMachine.entryTransitions.Length; i++)
+                            {
+                                if (stateMachine.entryTransitions[i].destinationState.name == addAnimationBeforeThisOneSubSM.name)
+                                {
+                                    isEntry = true;
+                                    FromEntryTransitionAddStateSubSM(stateMachine, i, animationAddToStateMach, addAnimationBeforeThisOneSubSM);
+                                }
+                            }
+                            if (!isEntry)
+                            {
+                                SimpleBeforeAdditionSubSM(stateMachine, animationAddToStateMach, addAnimationBeforeThisOneSubSM);
+                            }
+                        }
+                    }
+                    else if (addAnimationBeforeThisOneSubSM == null && addAnimationAfterThisOneSubSM != null)
+                    {
+                        AnimatorState animAfter = FindStateSubSM(stateMachine, addAnimationAfterThisOneSubSM.name);
+
+                        if (animAfter == null)
+                        {
+                            Debug.LogError("The animation state you selected as a Next Animation State doesn't exist in the sub State Machine.");
+                        }
+                        else
+                        {
+                            AnimatorStateTransition transition = animAfter.transitions[0];
+
+                            if (transition.isExit)
+                            {
+                                ToExitTransitionAddStateSubSM(stateMachine, animAfter, animationAddToStateMach);
+                            }
+                            else
+                            {
+                                SimpleAfterAdditionSubSM(stateMachine, animationAddToStateMach, addAnimationAfterThisOneSubSM);
+                            }
+                        }
+                    }
+                    else if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM != null)
+                    {
+                        BetweenTwoAnimStatesAddStateSubSM(stateMachine, animationAddToStateMach, addAnimationAfterThisOneSubSM, addAnimationBeforeThisOneSubSM);
+                    }
                 }
             }
         }
@@ -1194,6 +1335,25 @@ public class AnimationControllerEditor : Editor
         }
     }
 
+    public void FromEntryToState(AnimatorStateMachine stateMachine, AnimatorState addTransToIt, AnimationClip addThisAnim)
+    {
+        stateMachine.AddState(addThisAnim.name).motion = addThisAnim;
+
+        AnimatorState newStateInSubSM = FindStateSubSM(stateMachine, addThisAnim.name);
+        stateMachine.AddEntryTransition(newStateInSubSM);
+
+        newStateInSubSM.AddTransition(addTransToIt);
+    }
+
+    public void FromStateToExit(AnimatorStateMachine stateMachine, AnimatorState addTransToIt, AnimationClip addThisAnim)
+    {
+        stateMachine.AddState(addThisAnim.name).motion = addThisAnim;
+
+        AnimatorState newStateInSubSM = FindStateSubSM(stateMachine, addThisAnim.name);
+        addTransToIt.AddTransition(newStateInSubSM);
+        newStateInSubSM.AddExitTransition();
+    }
+
     public void ToExitTransitionAddStateSubSM(AnimatorStateMachine stateMachine, AnimatorState animAfter, AnimationClip addThisAnim)
     {
         stateMachine.AddState(addThisAnim.name);
@@ -1264,6 +1424,7 @@ public class AnimationControllerEditor : Editor
     public void FromEntryTransitionAddStateSubSM(AnimatorStateMachine stateMachine, int i, AnimationClip addThisAnim, AnimationClip beforeThisAnim)
     {
         AnimatorState animationStateAddBeforeThis = FindStateSubSM(stateMachine, beforeThisAnim.name);
+
         if (animationStateAddBeforeThis.name == stateMachine.defaultState.name)
         {
             animStateMach.AddState(addThisAnim.name).motion = addThisAnim;
