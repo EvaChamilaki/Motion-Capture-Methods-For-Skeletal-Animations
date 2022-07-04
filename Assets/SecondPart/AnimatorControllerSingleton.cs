@@ -15,7 +15,7 @@ public class AnimatorControllerSingleton : MonoBehaviour
     public Avatar avatar;
     private AnimatorStateMachine animStateMach;
 
-    [HideInInspector]
+    
     public List<GameObject> Characters;
 
     [HideInInspector]

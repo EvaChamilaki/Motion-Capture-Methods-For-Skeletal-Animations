@@ -38,25 +38,30 @@ public class AnimationControllerEditor : Editor
         //==============================================CHARACTERS===================================================
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-        acEd.showChars = EditorGUILayout.Foldout(acEd.showChars, "Characters", true);
-
+        acEd.showChars = EditorGUILayout.Foldout(acEd.showChars, "Characters functions", true);
+        
         int c = 0;
         if (acEd.showChars)
         {
-            foreach (GameObject character in acEd.Characters)
-            {
-                GUILayout.BeginHorizontal();
-                {
-                    GUILayout.Label("Character " + c + ":");
-                    EditorGUILayout.SelectableLabel(character.name, EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
-                }
-                GUILayout.EndHorizontal();
+            
+            //if (acEd.Characters.Count != 0)
+            //{
+            //    foreach (GameObject character in acEd.Characters)
+            //    {
+            //        Debug.Log(character.name);
+            //        GUILayout.BeginHorizontal();
+            //        {
+            //            GUILayout.Label("Character " + c + ":");
+            //            EditorGUILayout.SelectableLabel(character.name, EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+            //        }
+            //        GUILayout.EndHorizontal();
 
-                c++;
-            }
+            //        c++;
+            //    }
 
-            GUILayout.Space(10);
-
+            //GUILayout.Space(10);
+            //}
+            
             GUILayout.Label("<color=#ffffffff> <b>Add</b> Character:</color>", style);
 
             addCharacter = EditorGUILayout.ObjectField(addCharacter, typeof(GameObject), true) as GameObject;
@@ -324,7 +329,7 @@ public class AnimationControllerEditor : Editor
                     }
                     else if (addAnimationBeforeThisOneSubSM != null && addAnimationAfterThisOneSubSM == null)
                     {
-                        AnimatorState animBefore = FindStateSubSM(stateMachine, addAnimationBeforeThisOneSubSM.name);
+                        AnimatorState animBefore = FindStateSubSM(animStateMach, addAnimationBeforeThisOneSubSM.name);
 
                         if (animBefore == null)
                         {
@@ -340,7 +345,7 @@ public class AnimationControllerEditor : Editor
                                 {
                                     isEntry = true;
 
-                                    FromEntryTransitionAddStateSubSM(stateMachine, i, animationAddToStateMach, addAnimationBeforeThisOneSubSM);
+                                    FromEntryTransitionAddStateSubSM(animStateMach, i, animationAddToStateMach, addAnimationBeforeThisOneSubSM);
                                 }
                             }
                             if (!isEntry)
@@ -1427,8 +1432,7 @@ public class AnimationControllerEditor : Editor
 
         if (animationStateAddBeforeThis.name == stateMachine.defaultState.name)
         {
-            animStateMach.AddState(addThisAnim.name).motion = addThisAnim;
-
+            stateMachine.AddState(addThisAnim.name).motion = addThisAnim;
             AnimatorState old_default = FindStateSubSM(stateMachine, stateMachine.defaultState.name);
             AnimatorState new_default = FindStateSubSM(stateMachine, addThisAnim.name);
 
