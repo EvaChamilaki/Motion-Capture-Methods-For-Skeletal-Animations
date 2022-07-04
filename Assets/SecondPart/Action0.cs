@@ -5,14 +5,20 @@ using UnityEngine;
 public class Action0 : MonoBehaviour
 {
     public AnimatorControllerSingleton acEd;
-    private GameObject emily;
+    private GameObject emily, adam;
 
     private void Start()
     {
-        emily = GameObject.Find("Emily (1)");
+        emily = GameObject.Find("Emily");
+        adam = GameObject.Find("Adam");
     }
 
     public void PlayWhenPressed() {
-        StartCoroutine(acEd.PlayAnimationFromAnimatorController(acEd.selected_option, emily));
+        StartCoroutine(acEd.PlayAnimationFromAnimatorController("StartWalking", emily));
+    }
+
+    public void AdamPlay()
+    {
+        StartCoroutine(acEd.PlayAnimationFromAnimatorController("Wave", adam));
     }
 }
